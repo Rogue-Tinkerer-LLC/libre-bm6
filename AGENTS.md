@@ -21,6 +21,7 @@ This list is exhaustive.
 * `AGENTS.md` (this file)
 * `cleanroom/IMPLEMENTATION-LOG.adoc`, the implementation side's own history
 * `.gitignore` at the repository root
+* `TERMS.md` and `PRIVACY.md`, generated from the app's strings
 * General language and tooling guides that say nothing about this device, and the documentation or
   source of generic third-party packages such as `universal_ble` and `pointycastle`
 
@@ -73,4 +74,6 @@ Run these before reporting work as complete.
 (cd packages/libre_bm6 && dart format --output=none --set-exit-if-changed . && dart analyze && dart test)
 (cd packages/libre_bm6_universal_ble && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test)
 (cd app && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test && flutter build apk --debug)
+# After editing the legal strings, regenerate TERMS.md and PRIVACY.md:
+(cd app && flutter test tool/legal_docs.dart)
 ```

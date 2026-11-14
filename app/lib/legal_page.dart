@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_env.dart';
 import 'l10n/app_localizations.dart';
+import 'legal_text.dart';
 import 'linked_text.dart';
 
 /// The Terms of Service. With [onAccept], it is the first-launch gate.
@@ -17,18 +18,7 @@ class TermsPage extends StatelessWidget {
     return _LegalPage(
       env: env,
       title: l.termsTitle,
-      sections: [
-        (l.termsSummaryHeading, l.termsSummary),
-        (l.termsLicenseHeading, l.termsLicense),
-        (l.termsWarrantyHeading, l.termsWarranty),
-        (l.termsLiabilityHeading, l.termsLiability),
-        (l.termsIndependentHeading, l.termsIndependent),
-        (l.termsAccuracyHeading, l.termsAccuracy),
-        (l.termsSafetyHeading, l.termsSafety),
-        (l.termsFullLicenseHeading, l.termsFullLicense),
-        (l.termsChangesHeading, l.termsChanges),
-        (l.termsContactHeading, l.termsContact(issuesUrl)),
-      ],
+      sections: termsSections(l),
       bottom: onAccept == null
           ? null
           : Row(
@@ -60,16 +50,7 @@ class PrivacyPage extends StatelessWidget {
     return _LegalPage(
       env: env,
       title: l.privacyTitle,
-      sections: [
-        (l.privacySummaryHeading, l.privacySummary),
-        (l.privacyStoredHeading, l.privacyStored),
-        (l.privacyNotDoneHeading, l.privacyNotDone),
-        (l.privacyBluetoothHeading, l.privacyBluetooth),
-        (l.privacyBugReportHeading, l.privacyBugReport),
-        (l.privacySourceHeading, l.privacySource),
-        (l.privacyChangesHeading, l.privacyChanges),
-        (l.privacyContactHeading, l.privacyContact(issuesUrl)),
-      ],
+      sections: privacySections(l),
     );
   }
 }
@@ -84,7 +65,7 @@ class _LegalPage extends StatelessWidget {
 
   final AppEnv env;
   final String title;
-  final List<(String, String)> sections;
+  final List<LegalSection> sections;
   final Widget? bottom;
 
   @override
