@@ -231,7 +231,7 @@ void main() {
   });
 
   group('liveData', () {
-    test('sends only the encrypted start command without response', () async {
+    test('sends only the encrypted start command with response', () async {
       final subscription = liveData(deviceId).listen((_) {});
       await settle();
 
@@ -242,7 +242,7 @@ void main() {
         'writeValue $commandUuid',
       ]);
       expect(ble.written, startLiveDataCommand);
-      expect(ble.writeProperty, BleOutputProperty.withoutResponse);
+      expect(ble.writeProperty, BleOutputProperty.withResponse);
       await subscription.cancel();
     });
 

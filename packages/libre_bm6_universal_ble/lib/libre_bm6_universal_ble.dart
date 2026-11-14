@@ -102,12 +102,15 @@ Stream<LiveData> liveData(String deviceId) {
       serviceUuid,
       notifyUuid,
     );
+    // The spec's vendor flow writes without response, but the command
+    // characteristic declares only `write`, and the plugin's Android backend
+    // refuses a write without response on it.
     await UniversalBle.write(
       deviceId,
       serviceUuid,
       commandUuid,
       startLiveDataCommand,
-      withoutResponse: true,
+      withoutResponse: false,
     );
   }
 
