@@ -1,0 +1,249 @@
+= libre-bm6 Implementation Log
+A factual record of how the code under `packages/` was written from the two specification files, what the implementers read, and what was verified.
+
+== Scope and conventions
+
+This log covers the implementation side only. The specification side keeps its own log, which the implementers did not read.
+
+* Dates are 2026-11-14 unless stated otherwise. Times are local.
+* The device address is written `A1:B2:C3:D4:E5:F6` throughout. The real address is not recorded in this repository.
+* "Observed" means seen on real hardware with this repository's own code.
+
+== Clean-room controls
+
+=== Who did the work
+
+The work was done in one AI coding-agent session directed by Tag. The session planned, briefed, and verified. It delegated the writing, reviewing, and fixing to subagents, each started with no prior context and a brief that repeated the clean-room rule.
+
+=== What was read
+
+* `cleanroom/01-connection.adoc` and `cleanroom/02-packets.adoc`.
+* A general Dart style guide that says nothing about this device.
+* Source and tests under `packages/`, all written during this work.
+* The source of `universal_ble` 3.3.0, `bluez` 0.9.0, and `pointycastle` 4.0.0 in the local package cache.
+* `AGENTS.md`, once it existed.
+
+=== What was not read
+
+* The vendor app, in any form.
+* `CLEANROOM-LOG.adoc`, `README.md`, and `LICENSE`.
+* Any other file under `cleanroom/`.
+* Any transcript or notes from the sessions that produced the specification.
+
+The session listed the names of tracked files outside `cleanroom/` once, without opening them.
+
+=== Network lookups
+
+* One web search on the licensing of BLE plugins, with results from pub.dev and GitHub.
+* The pub.dev API pages for `universal_ble` and `pointycastle`.
+* No search or fetch concerning the device, its vendor, its app, its key, or other implementations of its protocol.
+
+=== How this was checked
+
+Every subagent reported the files it opened and the URLs it fetched. Each report matched the lists above. These are the agents' own accounts. Their transcripts were not audited.
+
+=== Caveat
+
+An AI model cannot attest to what was in its training data. Public material about this device may exist. The briefs told every agent to implement only what the two specification files say.
+
+== Decisions
+
+Tag made these before any code was written.
+
+* Two packages: a pure Dart codec, and a Flutter adapter on `universal_ble`.
+* `universal_ble` (BSD-3-Clause) over `flutter_blue_plus`, because `flutter_blue_plus` 2.x left BSD for its own license with a paid commercial tier.
+* Active mode sends only `D1 55 07`. There is no retry, fallback chain, watchdog, or reconnect. Callers handle those.
+* The library stays primitive, with the least code needed to read from the device.
+
+The session made these.
+
+* AES through `pointycastle`, not a hand-written cipher.
+* Every field the specification documents for the two frames is exposed.
+* The decrypted MAC is exposed and never compared to the platform device ID, because iOS reports no MAC.
+* Status stays a plain integer.
+
+== Work performed
+
+[cols="1,4"]
+|===
+|Commit |Change
+
+|`1a60cab`
+|Added `packages/libre_bm6`: the key, single-block AES, advertisement and live-data decoding, the encrypted start command, UUIDs, and device names. Tests use every vector in the specification.
+
+|`8ab232d`
+|Added `packages/libre_bm6_universal_ble`: `scan()` for passive mode and `liveData()` for active mode. Tests run against a fake platform installed through the plugin's own test hook.
+
+|`f7acc02`
+|Added `AGENTS.md` with the clean-room rule, and the `CLAUDE.md` symlink to it.
+
+|`7b134e1`
+|Added the hardware smoke tool, `packages/libre_bm6_universal_ble/tool/smoke.dart`.
+
+|`5f73c78`
+|Added a sanitized hardware capture, `packages/libre_bm6/test/fixtures/capture-2026-11-14.json`.
+
+|`3ce9257`
+|Strengthened the `decodeScanRecord` tests (sweep finding).
+
+|`77d6142`
+|Added codec tests that replay the capture.
+
+|`406031e`
+|Fixed `liveData()` so an error arriving after the stream closes is dropped (sweep finding).
+
+|`cc2e0c0`
+|Documented that `liveData()` needs a scan first on Linux.
+
+|`47dcec7`
+|Added an adapter test that replays the captured notifications through `liveData()`.
+
+|`772a6ba`
+|Documented the `scan()` limit on Linux.
+
+|`6618cc5`
+|Allowed agents to read this log.
+|===
+
+One implementation note: the first adapter draft used `async*` generators, and cancelling a subscription hung inside `await for`. The adapter uses explicit stream controllers instead.
+
+== Hardware testing
+
+Tested on one BM6 unit in a car, from a Linux laptop (Debian, BlueZ, `universal_ble` 3.3.0 Linux backend), with no bonding. Three runs of the smoke tool and one capture run. Run the tool from `packages/libre_bm6_universal_ble` with `flutter test tool/smoke.dart`.
+
+The tool runs under `flutter test` because `universal_ble` imports Flutter and cannot run under plain `dart run`. It overrides the target platform to Linux so that the real BlueZ backend is selected.
+
+The capture run and the smoke runs before and after the `liveData()` fix:
+
+[cols="2,2,2,2"]
+|===
+|Measure |Smoke run 1 (13:36) |Capture run |Smoke run 2 (13:48, after the fix)
+
+|Passive voltage
+|13.97 V to 14.14 V
+|13.94 V to 14.14 V
+|13.94 V to 14.14 V
+
+|Live frames
+|25
+|30
+|24
+
+|Mean frame interval
+|999 ms
+|**1001 ms**
+|1000 ms
+
+|Live voltage
+|14.08 V
+|13.95 V to 13.97 V
+|14.05 V to 14.06 V
+
+|Temperature
+|12 °C to 13 °C
+|12 °C to 13 °C
+|12 °C
+
+|Errors
+|0
+|0
+|0
+
+|Cancel duration
+|2393 ms
+|2083 ms
+|2593 ms
+
+|Connected after cancel
+|no
+|no
+|no
+|===
+
+Observed:
+
+* The device advertised as `BM6`. The decrypted MAC equaled the device ID in every event.
+* State of charge was 100 % and status was 2 throughout. Cranking voltage and cranking status were 0.
+* The single `D1 55 07` write was enough. The acknowledgement arrived ~1.1 s after connect, and the first data frame ~0.9 s after that.
+* Write without response on `FFF3` worked, although the stack reports only `write` on it.
+* Byte 13 of every data frame was `0x02`, and bytes 14 and 15 were `0x00`.
+* The GATT table matched the specification. The firmware-update service was not touched.
+* The disconnect event arrived twice, ~1 ms apart.
+* Notifications kept arriving during the ~2 s that cancel took.
+* An example data frame: `D1 55 07 00 0C 02 64 05 80 00 00 00 00 02 00 00`, which is 12 °C, status 2, 100 %, 14.08 V.
+
+Not tested: negative temperatures, status 1, a stream longer than ~30 s, Android, and iOS.
+
+=== The capture
+
+The capture holds the raw scan results, the notifications as ciphertext and plaintext, the connection events, and the GATT table. It was sanitized before it was committed.
+
+* Each encrypted advertisement block was decrypted, its MAC bytes replaced with `A1 B2 C3 D4 E5 F6`, and re-encrypted.
+* The iBeacon payload was replaced with zero bytes.
+* The file, the smoke tool, and the tests were searched for the real address in every form, with no hits.
+
+Working logs that contain the real address were kept outside the repository.
+
+== Clean sweep
+
+Scope: `1a60cab` and `8ab232d`, as two units (the codec and the adapter). One finder per unit read the code against the specification and the plugin source. Hardware checks validated the two Linux claims.
+
+[cols="3,2,2"]
+|===
+|Claim |Verdict |Outcome
+
+|`liveData()`: a disconnect during setup, followed by a setup failure, threw an unhandled error, leaked two subscriptions, and skipped the disconnect.
+|Confirmed with a failing test
+|**Fixed in `406031e`**
+
+|`scan()` on BlueZ never yields a reading that recurs, and replays stale blocks on the first result.
+|Confirmed on hardware
+|Documented in `772a6ba` by Tag's decision
+
+|`liveData()` on Linux fails unless a scan ran first in the same process.
+|Confirmed on hardware (`deviceNotFound` in ~100 ms)
+|Documented in `cc2e0c0`
+
+|The `decodeScanRecord` test did not prove "first", and nothing tested a `11 FF` pair inside another structure.
+|Confirmed
+|**Fixed in `3ce9257`**
+
+|`decodeScanRecord` hangs on a negative length byte.
+|Dropped
+|A BLE stack cannot deliver a negative byte.
+
+|`key` and `startLiveDataCommand` are mutable shared lists.
+|Dropped
+|Requires the caller to misuse the buffer.
+|===
+
+The codec finder found no mismatch between the code and the specification.
+
+Final verification after all changes:
+
+----
+packages/libre_bm6
+Formatted 3 files (0 changed)
+No issues found!
++30: All tests passed!
+
+packages/libre_bm6_universal_ble
+Formatted 3 files (0 changed)
+No issues found!
++16: All tests passed!
+----
+
+== Known limits
+
+* Passive mode on Linux is suited to testing only. BlueZ keeps every block it has seen, never dropped one during the test (the list grew from 12 to 15 entries), and gives no signal for which is current. Android is the next test target.
+* On Linux, `liveData()` needs a scan first in the same process.
+* A device with no OS-reported name is skipped, because `universal_ble` does not expose the raw advertisement record. `decodeScanRecord` covers stacks that do.
+* There is no checksum in the protocol. A block from another device that passes the service and name filters decodes as garbage. The caller's MAC comparison is the only guard.
+
+== Feedback for the specification side
+
+These are hardware observations for Tag to relay.
+
+* The BlueZ platform note says to track which entries are new, or pick the latest. That is not sufficient. A recurring reading reuses its earlier key, and BlueZ does not reorder or drop entries.
+* Whether the device keeps advertising while connected is still unsettled. No new block appeared during either connected session.
+* Advertisement and live voltages agreed in range. They were not compared at the same instant.
