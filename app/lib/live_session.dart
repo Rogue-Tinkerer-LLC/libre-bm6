@@ -22,6 +22,7 @@ class LiveSession {
     this.maxDelay = const Duration(seconds: 30),
     this.stallTimeout = const Duration(seconds: 10),
     this.firstFrameTimeout = const Duration(seconds: 40),
+    this.restartTimeout = const Duration(seconds: 10),
     this.historyLength = 300,
   }) : _delay = firstDelay;
 
@@ -36,6 +37,9 @@ class LiveSession {
   /// Android's 30 s connect attempt, so the platform's own failure wins when
   /// the monitor is out of range.
   final Duration firstFrameTimeout;
+
+  /// How long [restart] waits for the new connection before completing.
+  final Duration restartTimeout;
 
   /// How many voltages [history] keeps; at ~1 frame per second, 300 is five
   /// minutes.
@@ -62,6 +66,7 @@ class LiveSession {
   // cancel does not open a second connection.
   int _generation = 0;
   Completer<void>? _restartDone;
+  Timer? _restartTimer;
 
   void start() => _open();
 
@@ -83,13 +88,14 @@ class LiveSession {
   }
 
   /// Reconnects now, skipping any backoff wait. Completes when the new
-  /// connection delivers a frame, reports an error, or ends. A call while a
-  /// restart is in flight joins it.
+  /// connection delivers a frame, reports an error, or ends, or after
+  /// [restartTimeout]. A call while a restart is in flight joins it.
   Future<void> restart() {
     if (_closed) return Future.value();
     final inFlight = _restartDone;
     if (inFlight != null) return inFlight.future;
     final done = _restartDone = Completer<void>();
+    _restartTimer = Timer(restartTimeout, _settleRestart);
     _generation++;
     _retry?.cancel();
     _watchdog?.cancel();
@@ -106,6 +112,7 @@ class LiveSession {
   }
 
   void _settleRestart() {
+    _restartTimer?.cancel();
     _restartDone?.complete();
     _restartDone = null;
   }

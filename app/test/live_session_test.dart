@@ -332,6 +332,24 @@ void main() {
       });
     });
 
+    test('restart gives up after 10 seconds and can be retried', () {
+      fakeAsync((async) {
+        startSession(async);
+        var done = false;
+        session.restart().then((_) => done = true);
+        async.elapse(const Duration(milliseconds: 9999));
+        expect(done, isFalse);
+        async.elapse(const Duration(milliseconds: 1));
+        expect(done, isTrue);
+        expect(link.streams, hasLength(2));
+
+        session.restart();
+        async.flushMicrotasks();
+        expect(link.streams, hasLength(3));
+        expect(link.maxActive, 1);
+      });
+    });
+
     test('restart completes when the new connection reports an error', () {
       fakeAsync((async) {
         startSession(async);

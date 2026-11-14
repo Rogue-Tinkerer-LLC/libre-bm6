@@ -56,10 +56,7 @@ class _MonitorPageState extends State<MonitorPage> {
 
   Future<void> _refresh() async {
     if (!_started) return _start();
-    await _session.restart().timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {},
-    );
+    await _session.restart();
   }
 
   @override

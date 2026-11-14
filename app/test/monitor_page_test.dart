@@ -147,5 +147,27 @@ void main() {
       expect(find.text('13.90 V'), findsOneWidget);
       expect(ble.liveStreams, hasLength(2));
     });
+
+    testWidgets('pulling down again after a silent reconnect retries', (
+      tester,
+    ) async {
+      await openMonitor(tester);
+      await send(tester, frame());
+
+      Future<void> pullDown() async {
+        await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+      }
+
+      await pullDown();
+      expect(ble.liveStreams, hasLength(2));
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+      expect(find.byType(RefreshProgressIndicator), findsNothing);
+
+      await pullDown();
+      expect(ble.liveStreams, hasLength(3));
+    });
   });
 }
