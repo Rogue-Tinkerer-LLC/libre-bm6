@@ -30,6 +30,7 @@ class FakeBle extends UniversalBlePlatform {
   BleOutputProperty? writeProperty;
   var connected = false;
   var failWrite = false;
+  var failStopScan = false;
   Future<void> Function()? onDiscoverServices;
 
   /// Open subscriptions on the plugin's connection and value streams.
@@ -74,6 +75,9 @@ class FakeBle extends UniversalBlePlatform {
   }
 
   @override
+  Stream<BleDevice> get scanStream => tracked(super.scanStream);
+
+  @override
   Stream<bool> connectionStream(String deviceId) =>
       tracked(super.connectionStream(deviceId));
 
@@ -93,7 +97,10 @@ class FakeBle extends UniversalBlePlatform {
   }
 
   @override
-  Future<void> stopScan() async => calls.add('stopScan');
+  Future<void> stopScan() async {
+    calls.add('stopScan');
+    if (failStopScan) throw StateError('bluetooth is off');
+  }
 
   @override
   Future<void> connect(
@@ -227,6 +234,21 @@ void main() {
       await subscription.cancel();
 
       expect(ble.calls, ['startScan', 'stopScan']);
+    });
+
+    test('a cancel never throws when the scan cannot be stopped', () async {
+      ble.failStopScan = true;
+      final subscription = scan().listen((_) {});
+      await settle();
+
+      await subscription.cancel();
+
+      expect(ble.listeners, 0);
+      ble.failStopScan = false;
+      final again = scan().listen((_) {});
+      await settle();
+      expect(ble.calls, ['startScan', 'stopScan', 'startScan']);
+      await again.cancel();
     });
   });
 

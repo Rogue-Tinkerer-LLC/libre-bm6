@@ -12,6 +12,7 @@ export 'package:libre_bm6/libre_bm6.dart';
 /// mode).
 ///
 /// Scanning starts on listen and stops when the subscription is cancelled.
+/// Cancelling never throws.
 /// Compare [Advertisement.mac] to `deviceId` where the platform reports a MAC.
 ///
 /// On Linux this is suited to testing only. BlueZ keeps every block it has
@@ -56,8 +57,13 @@ Stream<({String deviceId, Advertisement advertisement})> scan() {
       ).catchError(controller.addError);
     },
     onCancel: () async {
-      await results.cancel();
-      await UniversalBle.stopScan();
+      // A scan that cannot be stopped (Bluetooth off) is not running, and
+      // Dart returns a failed cancel on every later cancel.
+      try {
+        await results.cancel();
+      } finally {
+        await UniversalBle.stopScan().catchError((Object _) {});
+      }
     },
   );
   return controller.stream;
