@@ -12,6 +12,8 @@ final _literal = RegExp(
   r'''semanticsLabel|title|message|applicationName|content)\s*:\s*r?['"]''',
 );
 
+final emailAddress = RegExp(r'[\w.+-]+@[\w-]+\.[\w.-]+');
+
 List<String> findLiterals(String source) => [
   for (final match in _literal.allMatches(source))
     '${_lineOf(source, match.start)}: ${_firstLine(match.group(0)!)}',
@@ -44,15 +46,22 @@ void main() {
     expect(offenders, isEmpty);
   });
 
-  test('the support email address appears nowhere in the app', () {
-    final address = RegExp(r'[\w.+-]+@roguetinkerer\.com');
+  test('the email scan catches any domain', () {
+    final sample = 'someone${'@'}example.org';
+    expect(emailAddress.hasMatch('write to $sample today'), isTrue);
+    expect(emailAddress.hasMatch('no address here'), isFalse);
+  });
+
+  test('no email address appears in the app or the legal documents', () {
     final hits = [
       for (final dir in ['lib', 'test', 'android/app/src'])
         for (final file in Directory(dir).listSync(recursive: true))
           if (file is File &&
               RegExp(r'\.(dart|arb|xml|kt|kts)$').hasMatch(file.path) &&
-              address.hasMatch(file.readAsStringSync()))
+              emailAddress.hasMatch(file.readAsStringSync()))
             file.path,
+      for (final path in ['../TERMS.md', '../PRIVACY.md'])
+        if (emailAddress.hasMatch(File(path).readAsStringSync())) path,
     ];
     expect(hits, isEmpty);
   });
