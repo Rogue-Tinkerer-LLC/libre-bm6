@@ -13,6 +13,12 @@ export 'package:libre_bm6/libre_bm6.dart';
 ///
 /// Scanning starts on listen and stops when the subscription is cancelled.
 /// Compare [Advertisement.mac] to `deviceId` where the platform reports a MAC.
+///
+/// On Linux this is suited to testing only. BlueZ keeps every block it has
+/// seen for a device and gives no signal for which one is current. The first
+/// result replays that cache as if it were current. After that, only a block
+/// never seen before is yielded, so a reading that recurs is missed.
+/// Observed 2026-11-14 with `universal_ble` 3.3.0.
 Stream<({String deviceId, Advertisement advertisement})> scan() {
   // BlueZ reports every block it has cached under its fake company id, so
   // only entries that were not in the device's previous result are current.
