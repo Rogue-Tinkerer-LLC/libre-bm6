@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libre_bm6_app/ble.dart';
@@ -123,6 +125,27 @@ void main() {
 
       expect(find.textContaining('Bluetooth is off'), findsOneWidget);
       expect(ble.liveStreams, isEmpty);
+    });
+
+    testWidgets('pulling down while checking Bluetooth connects once', (
+      tester,
+    ) async {
+      ble = FakeBle()..readyGate = Completer();
+      await tester.pumpWidget(
+        localized(
+          MonitorPage(ble: ble.ble, device: const SavedDevice(deviceId, 'Car')),
+        ),
+      );
+      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      ble.readyGate!.complete(BleReadiness.ready);
+      await tester.pump();
+
+      expect(ble.liveStreams, hasLength(1));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
     });
 
     testWidgets('pulling down reconnects once and keeps the readings', (

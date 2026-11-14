@@ -48,6 +48,9 @@ class FakeBle {
   /// Thrown by a scan cancel, as stopping a scan does while Bluetooth is off.
   Object? scanCancelError;
 
+  /// When set, `ready` waits for it instead of answering [readiness] at once.
+  Completer<BleReadiness>? readyGate;
+
   /// The most recent scan.
   StreamController<ScanResult> get scanResults => scanStreams.last;
 
@@ -70,7 +73,7 @@ class FakeBle {
       liveStreams.add(controller);
       return controller.stream;
     },
-    ready: () async => readiness,
+    ready: () async => await readyGate?.future ?? readiness,
   );
 }
 

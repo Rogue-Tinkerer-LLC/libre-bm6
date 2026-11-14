@@ -49,7 +49,8 @@ class _MonitorPageState extends State<MonitorPage> {
     final readiness = await widget.ble.ready();
     if (!mounted) return;
     setState(() => _readiness = readiness);
-    if (readiness != BleReadiness.ready) return;
+    // A pull during the first check runs a second check alongside it.
+    if (readiness != BleReadiness.ready || _started) return;
     _started = true;
     _session.start();
   }
