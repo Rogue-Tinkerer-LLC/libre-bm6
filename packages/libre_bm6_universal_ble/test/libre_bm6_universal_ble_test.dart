@@ -28,6 +28,10 @@ class FakeBle extends UniversalBlePlatform {
   BleOutputProperty? writeProperty;
   var connected = false;
   var failWrite = false;
+  Future<void> Function()? onDiscoverServices;
+
+  /// Open subscriptions on the plugin's connection and value streams.
+  var listeners = 0;
 
   void advertise(String? name, List<ManufacturerData> entries) =>
       updateScanResult(
@@ -40,6 +44,42 @@ class FakeBle extends UniversalBlePlatform {
 
   void notify(Uint8List value) =>
       updateCharacteristicValue(deviceId, notifyUuid, value, null);
+
+  void drop() {
+    connected = false;
+    updateConnection(deviceId, false);
+  }
+
+  Stream<T> tracked<T>(Stream<T> source) {
+    late StreamSubscription<T> subscription;
+    late StreamController<T> controller;
+    controller = StreamController(
+      sync: true,
+      onListen: () {
+        listeners++;
+        subscription = source.listen(
+          controller.add,
+          onError: controller.addError,
+          onDone: controller.close,
+        );
+      },
+      onCancel: () {
+        listeners--;
+        return subscription.cancel();
+      },
+    );
+    return controller.stream;
+  }
+
+  @override
+  Stream<bool> connectionStream(String deviceId) =>
+      tracked(super.connectionStream(deviceId));
+
+  @override
+  Stream<Uint8List> characteristicValueStream(
+    String deviceId,
+    String characteristicId,
+  ) => tracked(super.characteristicValueStream(deviceId, characteristicId));
 
   @override
   Future<void> startScan({
@@ -85,6 +125,7 @@ class FakeBle extends UniversalBlePlatform {
     DiscoverServicesPlatformConfig? platformConfig,
   }) async {
     calls.add('discoverServices');
+    await onDiscoverServices?.call();
     return [];
   }
 
@@ -271,6 +312,74 @@ void main() {
 
       await done.future;
       expect(errors.single, isA<StateError>());
+      expect(ble.calls.last, 'disconnect');
+    });
+
+    test('a disconnect during setup then a failure ends cleanly', () async {
+      ble.onDiscoverServices = () async {
+        ble.drop();
+        await settle();
+        throw StateError('discovery failed');
+      };
+      final errors = <Object>[];
+      final done = Completer<void>();
+      liveData(deviceId)
+          .listen((_) {}, onError: errors.add, onDone: done.complete);
+
+      await done.future;
+      await settle();
+      expect(errors, isEmpty);
+      expect(ble.listeners, 0);
+      expect(ble.calls, ['connect', 'discoverServices', 'disconnect']);
+    });
+
+    test('a repeated disconnect event is harmless', () async {
+      final done = Completer<void>();
+      liveData(deviceId).listen((_) {}, onDone: done.complete);
+      await settle();
+
+      ble
+        ..drop()
+        ..drop();
+      await done.future;
+      await settle();
+
+      expect(ble.listeners, 0);
+      expect(ble.calls.last, 'disconnect');
+    });
+
+    test('a malformed notification after a disconnect is dropped', () async {
+      final errors = <Object>[];
+      final done = Completer<void>();
+      liveData(deviceId)
+          .listen((_) {}, onError: errors.add, onDone: done.complete);
+      await settle();
+
+      ble
+        ..drop()
+        ..notify(Uint8List(20));
+      await done.future;
+      await settle();
+
+      expect(errors, isEmpty);
+      expect(ble.listeners, 0);
+    });
+
+    test('notifications during cancel are dropped', () async {
+      final events = <Object>[];
+      final subscription = liveData(deviceId)
+          .listen(events.add, onError: events.add);
+      await settle();
+
+      final cancelled = subscription.cancel();
+      ble
+        ..notify(hex('60 5a 04 2a d4 97 01 9a 91 af 63 7f c8 74 c9 d1'))
+        ..notify(Uint8List(20));
+      await cancelled;
+      await settle();
+
+      expect(events, isEmpty);
+      expect(ble.listeners, 0);
       expect(ble.calls.last, 'disconnect');
     });
   });

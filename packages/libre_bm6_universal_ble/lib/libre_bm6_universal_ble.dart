@@ -67,6 +67,11 @@ Stream<LiveData> liveData(String deviceId) {
   final subscriptions = <StreamSubscription<Object?>>[];
   late final StreamController<LiveData> controller;
   late final Future<void> started;
+  // A disconnect can close the stream before a late error arrives.
+  void addError(Object error, StackTrace stackTrace) {
+    if (!controller.isClosed) controller.addError(error, stackTrace);
+  }
+
   Future<void> start() async {
     await UniversalBle.connect(deviceId);
     // Listen before writing so the first frames cannot be missed.
@@ -76,7 +81,7 @@ Stream<LiveData> liveData(String deviceId) {
         notifyUuid,
       ).map(decodeNotification).listen((data) {
         if (data != null && !controller.isClosed) controller.add(data);
-      }, onError: controller.addError),
+      }, onError: addError),
       UniversalBle.connectionStream(deviceId).listen((connected) {
         if (!connected) controller.close();
       }),
@@ -98,9 +103,8 @@ Stream<LiveData> liveData(String deviceId) {
 
   controller = StreamController(
     onListen: () => started = start().catchError((Object e, StackTrace s) {
-      controller
-        ..addError(e, s)
-        ..close();
+      addError(e, s);
+      controller.close();
     }),
     onCancel: () async {
       // A cancel during setup must not leave the device connected.
