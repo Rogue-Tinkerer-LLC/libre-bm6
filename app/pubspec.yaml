@@ -2,7 +2,7 @@ name: libre_bm6_app
 description: Reads a BLE car-battery monitor.
 publish_to: none
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.13.7
