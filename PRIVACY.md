@@ -8,7 +8,7 @@ We treat you and your data the way we want to be treated. There is no account, n
 
 ## What the app stores
 
-The app stores only the monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a monitor removes it. Uninstalling the app removes everything.
+The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.
 
 ## What the app does not do
 

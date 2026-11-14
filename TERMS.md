@@ -24,7 +24,7 @@ Libre BM6 is an independent project. It is not affiliated with, endorsed by, or 
 
 ## Readings may be wrong
 
-Readings are for information only and may be inaccurate. On one tested monitor, the voltage read ~0.1 V lower than a multimeter.
+Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.
 
 ## Safety
 

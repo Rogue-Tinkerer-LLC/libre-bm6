@@ -24,13 +24,13 @@
   "@noValue": {
     "description": "Shown in place of a reading that has not arrived yet."
   },
-  "devicesTitle": "Saved monitors",
-  "devicesEmpty": "No saved monitors yet. Tap Add to find one.",
+  "devicesTitle": "Saved battery monitors",
+  "devicesEmpty": "No saved battery monitors yet. Tap Add to find one.",
   "addDevice": "Add",
   "@addDevice": {
     "description": "Button that opens the scanner."
   },
-  "addDeviceTooltip": "Find and save a monitor",
+  "addDeviceTooltip": "Find and save a battery monitor",
   "deviceActionsTooltip": "Actions for {alias}",
   "@deviceActionsTooltip": {
     "placeholders": {
@@ -39,9 +39,9 @@
       }
     }
   },
-  "renameTitle": "Rename monitor",
+  "renameTitle": "Rename battery monitor",
   "aliasLabel": "Name",
-  "deleteTitle": "Delete monitor?",
+  "deleteTitle": "Delete battery monitor?",
   "deleteMessage": "{alias} will be removed from this phone.",
   "@deleteMessage": {
     "placeholders": {
@@ -50,16 +50,16 @@
       }
     }
   },
-  "scannerTitle": "Find a monitor",
+  "scannerTitle": "Find a battery monitor",
   "scannerChecking": "Checking Bluetooth…",
-  "scannerSearching": "Looking for monitors. Please keep the monitor nearby.",
-  "scannerHint": "Tap a monitor to save it.",
+  "scannerSearching": "Looking for battery monitors. Please keep the battery monitor nearby.",
+  "scannerHint": "Tap a battery monitor to save it.",
   "bluetoothOff": "Bluetooth is off. Please turn it on.",
   "permissionDenied": "The app needs permission to find nearby devices. Please allow it in the system settings.",
   "saveAsTitle": "Save as",
-  "defaultAlias": "Monitor {suffix}",
+  "defaultAlias": "Battery monitor {suffix}",
   "@defaultAlias": {
-    "description": "Suggested name for a new monitor. The suffix is the last four characters of its address.",
+    "description": "Suggested name for a new battery monitor. The suffix is the last four characters of its address.",
     "placeholders": {
       "suffix": {
         "type": "String",
@@ -122,11 +122,11 @@
   "linkConnecting": "Connecting…",
   "linkLive": "Live",
   "linkReconnecting": "Reconnecting…",
-  "errorDisconnected": "The monitor disconnected.",
+  "errorDisconnected": "The battery monitor disconnected.",
   "errorStalled": "No reading for 10 seconds.",
-  "errorNotFound": "The monitor was not found. Is it in range?",
-  "errorConnection": "Could not connect to the monitor.",
-  "errorBadReading": "The monitor sent a reading that could not be read.",
+  "errorNotFound": "The battery monitor was not found. Is it in range?",
+  "errorConnection": "Could not connect to the battery monitor.",
+  "errorBadReading": "The battery monitor sent a reading that could not be read.",
   "errorUnknown": "Something went wrong with Bluetooth.",
   "drawerAbout": "About Libre BM6",
   "aboutTitle": "About",
@@ -141,7 +141,7 @@
       }
     }
   },
-  "aboutDescription": "Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the monitor's manufacturer.",
+  "aboutDescription": "Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the battery monitor's manufacturer.",
   "licensesTitle": "Open-source licenses",
   "helpTitle": "Help",
   "helpIntro": "Need help or found a problem? Please tell us on the project's GitHub page. Your browser opens with a draft that you can edit before you submit it.",
@@ -204,7 +204,7 @@
   "termsIndependentHeading": "Independent project",
   "termsIndependent": "Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor.",
   "termsAccuracyHeading": "Readings may be wrong",
-  "termsAccuracy": "Readings are for information only and may be inaccurate. On one tested monitor, the voltage read ~0.1 V lower than a multimeter.",
+  "termsAccuracy": "Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.",
   "termsSafetyHeading": "Safety",
   "termsSafety": "Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional.",
   "termsFullLicenseHeading": "The full license",
@@ -224,7 +224,7 @@
   "privacySummaryHeading": "The short version",
   "privacySummary": "We treat you and your data the way we want to be treated. There is no account, no ads, and no tracking. Nothing leaves your phone unless you choose to report a bug or ask for support.",
   "privacyStoredHeading": "What the app stores",
-  "privacyStored": "The app stores only the monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a monitor removes it. Uninstalling the app removes everything.",
+  "privacyStored": "The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.",
   "privacyNotDoneHeading": "What the app does not do",
   "privacyNotDone": "There is no account, sign-in, advertising, analytics, or crash reporting. The app does not request internet access, so it cannot send anything off your phone. It does not access your location.",
   "privacyBluetoothHeading": "Bluetooth permissions",

@@ -39,7 +39,10 @@ void main() {
     ) async {
       await openScanner(tester);
 
-      expect(find.textContaining('Looking for monitors'), findsOneWidget);
+      expect(
+        find.textContaining('Looking for battery monitors'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('lists a device once and updates its voltage', (tester) async {
@@ -80,12 +83,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Save as'), findsOneWidget);
-      expect(find.widgetWithText(TextField, 'Monitor E5F6'), findsOneWidget);
+      expect(
+        find.widgetWithText(TextField, 'Battery monitor E5F6'),
+        findsOneWidget,
+      );
       await tester.enterText(find.byType(TextField), 'Car');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Saved monitors'), findsOneWidget);
+      expect(find.text('Saved battery monitors'), findsOneWidget);
       expect(find.text('Car'), findsOneWidget);
       expect(find.text(deviceId), findsOneWidget);
     });
@@ -137,7 +143,10 @@ void main() {
       expect(ble.scanListens, 2);
       expect(ble.scanCancels, 1);
       expect(find.text(deviceId), findsNothing);
-      expect(find.textContaining('Looking for monitors'), findsOneWidget);
+      expect(
+        find.textContaining('Looking for battery monitors'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('pulling down works from the empty state', (tester) async {
@@ -176,7 +185,10 @@ void main() {
       ble.readiness = BleReadiness.ready;
       await pullDown(tester);
       expect(ble.scanListens, 2);
-      expect(find.textContaining('Looking for monitors'), findsOneWidget);
+      expect(
+        find.textContaining('Looking for battery monitors'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('leaving ignores a failing scan cancel', (tester) async {
@@ -190,7 +202,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(ble.scanCancels, 1);
-      expect(find.text('Saved monitors'), findsOneWidget);
+      expect(find.text('Saved battery monitors'), findsOneWidget);
     });
   });
 }

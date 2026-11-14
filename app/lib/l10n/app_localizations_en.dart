@@ -37,16 +37,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noValue => '–';
 
   @override
-  String get devicesTitle => 'Saved monitors';
+  String get devicesTitle => 'Saved battery monitors';
 
   @override
-  String get devicesEmpty => 'No saved monitors yet. Tap Add to find one.';
+  String get devicesEmpty =>
+      'No saved battery monitors yet. Tap Add to find one.';
 
   @override
   String get addDevice => 'Add';
 
   @override
-  String get addDeviceTooltip => 'Find and save a monitor';
+  String get addDeviceTooltip => 'Find and save a battery monitor';
 
   @override
   String deviceActionsTooltip(String alias) {
@@ -54,13 +55,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get renameTitle => 'Rename monitor';
+  String get renameTitle => 'Rename battery monitor';
 
   @override
   String get aliasLabel => 'Name';
 
   @override
-  String get deleteTitle => 'Delete monitor?';
+  String get deleteTitle => 'Delete battery monitor?';
 
   @override
   String deleteMessage(String alias) {
@@ -68,17 +69,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get scannerTitle => 'Find a monitor';
+  String get scannerTitle => 'Find a battery monitor';
 
   @override
   String get scannerChecking => 'Checking Bluetooth…';
 
   @override
   String get scannerSearching =>
-      'Looking for monitors. Please keep the monitor nearby.';
+      'Looking for battery monitors. Please keep the battery monitor nearby.';
 
   @override
-  String get scannerHint => 'Tap a monitor to save it.';
+  String get scannerHint => 'Tap a battery monitor to save it.';
 
   @override
   String get bluetoothOff => 'Bluetooth is off. Please turn it on.';
@@ -92,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String defaultAlias(String suffix) {
-    return 'Monitor $suffix';
+    return 'Battery monitor $suffix';
   }
 
   @override
@@ -164,20 +165,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkReconnecting => 'Reconnecting…';
 
   @override
-  String get errorDisconnected => 'The monitor disconnected.';
+  String get errorDisconnected => 'The battery monitor disconnected.';
 
   @override
   String get errorStalled => 'No reading for 10 seconds.';
 
   @override
-  String get errorNotFound => 'The monitor was not found. Is it in range?';
+  String get errorNotFound =>
+      'The battery monitor was not found. Is it in range?';
 
   @override
-  String get errorConnection => 'Could not connect to the monitor.';
+  String get errorConnection => 'Could not connect to the battery monitor.';
 
   @override
   String get errorBadReading =>
-      'The monitor sent a reading that could not be read.';
+      'The battery monitor sent a reading that could not be read.';
 
   @override
   String get errorUnknown => 'Something went wrong with Bluetooth.';
@@ -195,7 +197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDescription =>
-      'Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the monitor\'s manufacturer.';
+      'Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the battery monitor\'s manufacturer.';
 
   @override
   String get licensesTitle => 'Open-source licenses';
@@ -284,7 +286,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsAccuracy =>
-      'Readings are for information only and may be inaccurate. On one tested monitor, the voltage read ~0.1 V lower than a multimeter.';
+      'Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.';
 
   @override
   String get termsSafetyHeading => 'Safety';
@@ -327,7 +329,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyStored =>
-      'The app stores only the monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone and is excluded from backups. Deleting a monitor removes it. Uninstalling the app removes everything.';
+      'The app stores only the battery monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.';
 
   @override
   String get privacyNotDoneHeading => 'What the app does not do';

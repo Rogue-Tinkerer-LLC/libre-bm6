@@ -13,12 +13,12 @@ void main() {
     ) async {
       final store = await pumpApp(tester, prefs: {});
       expect(find.text('Terms of Service'), findsOneWidget);
-      expect(find.text('Saved monitors'), findsNothing);
+      expect(find.text('Saved battery monitors'), findsNothing);
 
       await tester.tap(find.text('Accept'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Saved monitors'), findsOneWidget);
+      expect(find.text('Saved battery monitors'), findsOneWidget);
       expect(store.termsAccepted, isTrue);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('acceptedTerms'), termsFingerprint());
@@ -26,7 +26,7 @@ void main() {
       // Relaunch.
       await tester.pumpWidget(const SizedBox());
       await pumpApp(tester, prefs: {'acceptedTerms': termsFingerprint()});
-      expect(find.text('Saved monitors'), findsOneWidget);
+      expect(find.text('Saved battery monitors'), findsOneWidget);
     });
 
     testWidgets('shows the terms again when they have changed', (tester) async {
@@ -63,7 +63,7 @@ void main() {
     testWidgets('skips the terms once accepted', (tester) async {
       await pumpApp(tester);
 
-      expect(find.text('Saved monitors'), findsOneWidget);
+      expect(find.text('Saved battery monitors'), findsOneWidget);
       expect(find.text('Accept'), findsNothing);
     });
 
@@ -123,7 +123,10 @@ void main() {
     testWidgets('shows an empty state', (tester) async {
       await pumpApp(tester);
 
-      expect(find.textContaining('No saved monitors yet'), findsOneWidget);
+      expect(
+        find.textContaining('No saved battery monitors yet'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renames a device and persists it', (tester) async {
@@ -190,7 +193,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       await pumpApp(tester);
 
-      final context = tester.element(find.text('Saved monitors'));
+      final context = tester.element(find.text('Saved battery monitors'));
       expect(Theme.of(context).brightness, Brightness.dark);
       expect(Theme.of(context).colorScheme.surface, Colors.black);
     });
@@ -198,7 +201,7 @@ void main() {
     testWidgets('builds in light mode', (tester) async {
       await pumpApp(tester);
 
-      final context = tester.element(find.text('Saved monitors'));
+      final context = tester.element(find.text('Saved battery monitors'));
       expect(Theme.of(context).brightness, Brightness.light);
     });
   });

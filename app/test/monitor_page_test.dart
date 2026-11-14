@@ -108,7 +108,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Reconnecting…'), findsOneWidget);
-      expect(find.text('The monitor disconnected.'), findsOneWidget);
+      expect(find.text('The battery monitor disconnected.'), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 2));
       expect(ble.liveStreams, hasLength(2));

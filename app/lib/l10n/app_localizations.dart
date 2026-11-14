@@ -151,13 +151,13 @@ abstract class AppLocalizations {
   /// No description provided for @devicesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Saved monitors'**
+  /// **'Saved battery monitors'**
   String get devicesTitle;
 
   /// No description provided for @devicesEmpty.
   ///
   /// In en, this message translates to:
-  /// **'No saved monitors yet. Tap Add to find one.'**
+  /// **'No saved battery monitors yet. Tap Add to find one.'**
   String get devicesEmpty;
 
   /// Button that opens the scanner.
@@ -169,7 +169,7 @@ abstract class AppLocalizations {
   /// No description provided for @addDeviceTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Find and save a monitor'**
+  /// **'Find and save a battery monitor'**
   String get addDeviceTooltip;
 
   /// No description provided for @deviceActionsTooltip.
@@ -181,7 +181,7 @@ abstract class AppLocalizations {
   /// No description provided for @renameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Rename monitor'**
+  /// **'Rename battery monitor'**
   String get renameTitle;
 
   /// No description provided for @aliasLabel.
@@ -193,7 +193,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete monitor?'**
+  /// **'Delete battery monitor?'**
   String get deleteTitle;
 
   /// No description provided for @deleteMessage.
@@ -205,7 +205,7 @@ abstract class AppLocalizations {
   /// No description provided for @scannerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Find a monitor'**
+  /// **'Find a battery monitor'**
   String get scannerTitle;
 
   /// No description provided for @scannerChecking.
@@ -217,13 +217,13 @@ abstract class AppLocalizations {
   /// No description provided for @scannerSearching.
   ///
   /// In en, this message translates to:
-  /// **'Looking for monitors. Please keep the monitor nearby.'**
+  /// **'Looking for battery monitors. Please keep the battery monitor nearby.'**
   String get scannerSearching;
 
   /// No description provided for @scannerHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap a monitor to save it.'**
+  /// **'Tap a battery monitor to save it.'**
   String get scannerHint;
 
   /// No description provided for @bluetoothOff.
@@ -244,10 +244,10 @@ abstract class AppLocalizations {
   /// **'Save as'**
   String get saveAsTitle;
 
-  /// Suggested name for a new monitor. The suffix is the last four characters of its address.
+  /// Suggested name for a new battery monitor. The suffix is the last four characters of its address.
   ///
   /// In en, this message translates to:
-  /// **'Monitor {suffix}'**
+  /// **'Battery monitor {suffix}'**
   String defaultAlias(String suffix);
 
   /// No description provided for @voltageLabel.
@@ -337,7 +337,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorDisconnected.
   ///
   /// In en, this message translates to:
-  /// **'The monitor disconnected.'**
+  /// **'The battery monitor disconnected.'**
   String get errorDisconnected;
 
   /// No description provided for @errorStalled.
@@ -349,19 +349,19 @@ abstract class AppLocalizations {
   /// No description provided for @errorNotFound.
   ///
   /// In en, this message translates to:
-  /// **'The monitor was not found. Is it in range?'**
+  /// **'The battery monitor was not found. Is it in range?'**
   String get errorNotFound;
 
   /// No description provided for @errorConnection.
   ///
   /// In en, this message translates to:
-  /// **'Could not connect to the monitor.'**
+  /// **'Could not connect to the battery monitor.'**
   String get errorConnection;
 
   /// No description provided for @errorBadReading.
   ///
   /// In en, this message translates to:
-  /// **'The monitor sent a reading that could not be read.'**
+  /// **'The battery monitor sent a reading that could not be read.'**
   String get errorBadReading;
 
   /// No description provided for @errorUnknown.
@@ -391,7 +391,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutDescription.
   ///
   /// In en, this message translates to:
-  /// **'Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the monitor\'s manufacturer.'**
+  /// **'Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the battery monitor\'s manufacturer.'**
   String get aboutDescription;
 
   /// No description provided for @licensesTitle.
@@ -529,7 +529,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Readings are for information only and may be inaccurate. On one tested monitor, the voltage read ~0.1 V lower than a multimeter.'**
+  /// **'Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.'**
   String get termsAccuracy;
 
   /// No description provided for @termsSafetyHeading.
@@ -601,7 +601,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyStored.
   ///
   /// In en, this message translates to:
-  /// **'The app stores only the monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone and is excluded from backups. Deleting a monitor removes it. Uninstalling the app removes everything.'**
+  /// **'The app stores only the battery monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.'**
   String get privacyStored;
 
   /// No description provided for @privacyNotDoneHeading.
