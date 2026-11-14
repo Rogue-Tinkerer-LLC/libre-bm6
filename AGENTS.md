@@ -17,8 +17,10 @@ This list is exhaustive.
 * `cleanroom/01-connection.adoc`
 * `cleanroom/02-packets.adoc`
 * Source and tests under `packages/`
+* Source and tests under `app/`
 * `AGENTS.md` (this file)
 * `IMPLEMENTATION-LOG.adoc`, the implementation side's own history
+* `.gitignore` at the repository root
 * General language and tooling guides that say nothing about this device, and the documentation or
   source of generic third-party packages such as `universal_ble` and `pointycastle`
 
@@ -61,6 +63,7 @@ decides how to proceed.
 * `cleanroom/` holds the specification. It is read-only for the implementation side.
 * `packages/libre_bm6` is the pure Dart protocol codec.
 * `packages/libre_bm6_universal_ble` is the Flutter adapter on `universal_ble`.
+* `app/` is the Android app built on the adapter.
 
 ## Verify
 
@@ -69,4 +72,5 @@ Run these before reporting work as complete.
 ```sh
 (cd packages/libre_bm6 && dart format --output=none --set-exit-if-changed . && dart analyze && dart test)
 (cd packages/libre_bm6_universal_ble && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test)
+(cd app && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test && flutter build apk --debug)
 ```
