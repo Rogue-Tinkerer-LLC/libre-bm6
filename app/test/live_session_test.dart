@@ -183,6 +183,26 @@ void main() {
       });
     });
 
+    test('reconnects when no first frame arrives for 40 seconds', () {
+      fakeAsync((async) {
+        startSession(async);
+        async.elapse(const Duration(milliseconds: 39999));
+        expect(session.state, LinkState.connecting);
+        expect(link.cancels, 0);
+
+        async.elapse(const Duration(milliseconds: 1));
+        expect(session.state, LinkState.reconnecting);
+        expect(session.lastError, LinkProblem.disconnected);
+        expect(link.cancels, 1);
+        expectReconnectAfter(async, const Duration(seconds: 2));
+
+        // The reconnect is silent too, so it is dropped and backs off.
+        async.elapse(const Duration(seconds: 40));
+        expect(link.cancels, 2);
+        expectReconnectAfter(async, const Duration(seconds: 4));
+      });
+    });
+
     test('waits for the old cancel before connecting again', () {
       fakeAsync((async) {
         startSession(async, cancelDelay: const Duration(seconds: 3));
@@ -277,7 +297,7 @@ void main() {
         async.flushMicrotasks();
         expect(link.streams, hasLength(2));
 
-        async.elapse(const Duration(minutes: 1));
+        async.elapse(const Duration(seconds: 30));
         expect(link.streams, hasLength(2));
       });
     });
@@ -289,7 +309,7 @@ void main() {
         async.elapse(const Duration(seconds: 10)); // stall, cancel pending
 
         session.restart();
-        async.elapse(const Duration(minutes: 1));
+        async.elapse(const Duration(seconds: 30));
 
         expect(link.streams, hasLength(2));
         expect(link.maxActive, 1);

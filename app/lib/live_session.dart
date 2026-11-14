@@ -8,7 +8,7 @@ enum LinkState { connecting, live, reconnecting }
 enum LinkProblem { disconnected, stalled }
 
 /// Keeps a live-data stream running: reconnects with a capped backoff when
-/// the stream ends, and restarts it when frames stop arriving.
+/// the stream ends, and restarts it when frames stop arriving or never start.
 ///
 /// Error events are recorded in [lastError] but are not fatal, because the
 /// adapter reports a malformed notification as an error and keeps going. A
@@ -21,6 +21,7 @@ class LiveSession {
     this.firstDelay = const Duration(seconds: 2),
     this.maxDelay = const Duration(seconds: 30),
     this.stallTimeout = const Duration(seconds: 10),
+    this.firstFrameTimeout = const Duration(seconds: 40),
     this.historyLength = 300,
   }) : _delay = firstDelay;
 
@@ -30,6 +31,11 @@ class LiveSession {
   final Duration firstDelay;
   final Duration maxDelay;
   final Duration stallTimeout;
+
+  /// How long a connection may go without its first frame. Longer than
+  /// Android's 30 s connect attempt, so the platform's own failure wins when
+  /// the monitor is out of range.
+  final Duration firstFrameTimeout;
 
   /// How many voltages [history] keeps; at ~1 frame per second, 300 is five
   /// minutes.
@@ -68,6 +74,11 @@ class LiveSession {
       onError: _onError,
       onDone: () =>
           _restart(_sessionError ?? LinkProblem.disconnected, ended: true),
+    );
+    _watchdog?.cancel();
+    _watchdog = Timer(
+      firstFrameTimeout,
+      () => _restart(_sessionError ?? LinkProblem.disconnected, ended: false),
     );
   }
 
@@ -126,7 +137,8 @@ class LiveSession {
   void _restart(Object problem, {required bool ended}) {
     final old = _subscription;
     if (_closed || old == null) return;
-    if (ended) _settleRestart();
+    // A restart in flight has had no frame yet, so this ends its wait.
+    _settleRestart();
     _subscription = null;
     _watchdog?.cancel();
     lastError = problem;
