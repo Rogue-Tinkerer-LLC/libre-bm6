@@ -23,7 +23,7 @@ void main() {
     testWidgets('opens the open-source licenses page', (tester) async {
       await tester.pumpWidget(localized(AboutPage(env: FakeEnv().env)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Open-source licenses'));
+      await tester.tap(find.text('Open-Source Licenses'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
@@ -36,7 +36,7 @@ void main() {
 
       expect(find.text('Terms of Service'), findsNothing);
       expect(find.text('Privacy Policy'), findsNothing);
-      expect(find.text('Open-source licenses'), findsOneWidget);
+      expect(find.text('Open-Source Licenses'), findsOneWidget);
     });
   });
 

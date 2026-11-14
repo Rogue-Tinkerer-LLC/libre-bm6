@@ -37,7 +37,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noValue => '–';
 
   @override
-  String get devicesTitle => 'Saved battery monitors';
+  String get devicesTitle => 'Saved Battery Monitors';
 
   @override
   String get devicesEmpty =>
@@ -55,13 +55,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get renameTitle => 'Rename battery monitor';
+  String get renameTitle => 'Rename Battery Monitor';
 
   @override
   String get aliasLabel => 'Name';
 
   @override
-  String get deleteTitle => 'Delete battery monitor?';
+  String get deleteTitle => 'Delete Battery Monitor?';
 
   @override
   String deleteMessage(String alias) {
@@ -69,7 +69,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get scannerTitle => 'Find a battery monitor';
+  String get scannerTitle => 'Find a Battery Monitor';
 
   @override
   String get scannerChecking => 'Checking Bluetooth…';
@@ -89,7 +89,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The app needs permission to find nearby devices. Please allow it in the system settings.';
 
   @override
-  String get saveAsTitle => 'Save as';
+  String get saveAsTitle => 'Save As';
 
   @override
   String defaultAlias(String suffix) {
@@ -200,7 +200,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the battery monitor\'s manufacturer.';
 
   @override
-  String get licensesTitle => 'Open-source licenses';
+  String get licensesTitle => 'Open-Source Licenses';
 
   @override
   String get helpTitle => 'Help';
@@ -247,42 +247,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyTitle => 'Privacy Policy';
 
   @override
-  String get termsSummaryHeading => 'The short version';
+  String get termsSummaryHeading => 'The Short Version';
 
   @override
   String get termsSummary =>
       'This app is free software. It comes with no warranty, and nobody who made it is liable for what happens when you use it. Please do not rely on it for safety, and never use it while driving.';
 
   @override
-  String get termsLicenseHeading => 'Free software';
+  String get termsLicenseHeading => 'Free Software';
 
   @override
   String get termsLicense =>
       'Libre BM6 is free and open-source software. Its source code is available under the Mozilla Public License, version 2.0 (\"MPL 2.0\"). By using the app, you agree to these terms. If you do not agree, please do not use the app.';
 
   @override
-  String get termsWarrantyHeading => 'No warranty';
+  String get termsWarrantyHeading => 'No Warranty';
 
   @override
   String get termsWarranty =>
       'As section 6 of the MPL 2.0 says, the app is provided \"as is\", without any warranty, whether express, implied, or statutory. There is no promise that it is free of defects, fit for any particular purpose, or non-infringing. You take on the entire risk as to its quality and performance. If it turns out to be defective, you, and not any contributor, bear the cost of any servicing, repair, or correction.';
 
   @override
-  String get termsLiabilityHeading => 'No liability';
+  String get termsLiabilityHeading => 'No Liability';
 
   @override
   String get termsLiability =>
       'As section 7 of the MPL 2.0 says, no contributor or distributor of the app is liable to you for any damages of any kind, under any legal theory, whether tort (including negligence), contract, or otherwise. This covers direct, indirect, special, incidental, and consequential damages, including lost profits, lost goodwill, work stoppage, and computer failure or malfunction. It does not limit liability for death or personal injury caused by a party\'s negligence where the law does not allow such a limit. Some jurisdictions do not allow incidental or consequential damages to be excluded or limited, so this part may not apply to you.';
 
   @override
-  String get termsIndependentHeading => 'Independent project';
+  String get termsIndependentHeading => 'Independent Project';
 
   @override
   String get termsIndependent =>
       'Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor.';
 
   @override
-  String get termsAccuracyHeading => 'Readings may be wrong';
+  String get termsAccuracyHeading => 'Readings May Be Wrong';
 
   @override
   String get termsAccuracy =>
@@ -296,7 +296,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional.';
 
   @override
-  String get termsFullLicenseHeading => 'The full license';
+  String get termsFullLicenseHeading => 'The Full License';
 
   @override
   String get termsFullLicense =>
@@ -318,42 +318,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacySummaryHeading => 'The short version';
+  String get privacySummaryHeading => 'The Short Version';
 
   @override
   String get privacySummary =>
       'We treat you and your data the way we want to be treated. There is no account, no ads, and no tracking. Nothing leaves your phone unless you choose to report a bug or ask for support.';
 
   @override
-  String get privacyStoredHeading => 'What the app stores';
+  String get privacyStoredHeading => 'What the App Stores';
 
   @override
   String get privacyStored =>
       'The app stores only the battery monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.';
 
   @override
-  String get privacyNotDoneHeading => 'What the app does not do';
+  String get privacyNotDoneHeading => 'What the App Does Not Do';
 
   @override
   String get privacyNotDone =>
       'There is no account, sign-in, advertising, analytics, or crash reporting. The app does not request internet access, so it cannot send anything off your phone. It does not access your location.';
 
   @override
-  String get privacyBluetoothHeading => 'Bluetooth permissions';
+  String get privacyBluetoothHeading => 'Bluetooth Permissions';
 
   @override
   String get privacyBluetooth =>
       'The app asks for permission to find and connect to nearby Bluetooth devices. It uses that permission only to find your battery monitor and read it. It tells the system that Bluetooth scans are never used to work out your location.';
 
   @override
-  String get privacyBugReportHeading => 'Bug reports and support';
+  String get privacyBugReportHeading => 'Bug Reports and Support';
 
   @override
   String get privacyBugReport =>
       'If you tap Report a bug or Contact support, the app opens the project\'s GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and build number and the Android version and API level, and you can edit or remove them before you submit. GitHub\'s own terms and privacy policy apply there. The app itself still has no network access.';
 
   @override
-  String get privacySourceHeading => 'Source code';
+  String get privacySourceHeading => 'Source Code';
 
   @override
   String get privacySource =>

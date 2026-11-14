@@ -82,7 +82,7 @@ void main() {
       await tester.tap(find.text(deviceId));
       await tester.pumpAndSettle();
 
-      expect(find.text('Save as'), findsOneWidget);
+      expect(find.text('Save As'), findsOneWidget);
       expect(
         find.widgetWithText(TextField, 'Battery monitor E5F6'),
         findsOneWidget,
@@ -91,7 +91,7 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Saved battery monitors'), findsOneWidget);
+      expect(find.text('Saved Battery Monitors'), findsOneWidget);
       expect(find.text('Car'), findsOneWidget);
       expect(find.text(deviceId), findsOneWidget);
     });
@@ -202,7 +202,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(ble.scanCancels, 1);
-      expect(find.text('Saved battery monitors'), findsOneWidget);
+      expect(find.text('Saved Battery Monitors'), findsOneWidget);
     });
   });
 }

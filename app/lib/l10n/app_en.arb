@@ -24,7 +24,7 @@
   "@noValue": {
     "description": "Shown in place of a reading that has not arrived yet."
   },
-  "devicesTitle": "Saved battery monitors",
+  "devicesTitle": "Saved Battery Monitors",
   "devicesEmpty": "No saved battery monitors yet. Tap Add to find one.",
   "addDevice": "Add",
   "@addDevice": {
@@ -39,9 +39,9 @@
       }
     }
   },
-  "renameTitle": "Rename battery monitor",
+  "renameTitle": "Rename Battery Monitor",
   "aliasLabel": "Name",
-  "deleteTitle": "Delete battery monitor?",
+  "deleteTitle": "Delete Battery Monitor?",
   "deleteMessage": "{alias} will be removed from this phone.",
   "@deleteMessage": {
     "placeholders": {
@@ -50,13 +50,13 @@
       }
     }
   },
-  "scannerTitle": "Find a battery monitor",
+  "scannerTitle": "Find a Battery Monitor",
   "scannerChecking": "Checking Bluetooth…",
   "scannerSearching": "Looking for battery monitors. Please keep the battery monitor nearby.",
   "scannerHint": "Tap a battery monitor to save it.",
   "bluetoothOff": "Bluetooth is off. Please turn it on.",
   "permissionDenied": "The app needs permission to find nearby devices. Please allow it in the system settings.",
-  "saveAsTitle": "Save as",
+  "saveAsTitle": "Save As",
   "defaultAlias": "Battery monitor {suffix}",
   "@defaultAlias": {
     "description": "Suggested name for a new battery monitor. The suffix is the last four characters of its address.",
@@ -142,7 +142,7 @@
     }
   },
   "aboutDescription": "Libre BM6 is a free, open-source reader for a Bluetooth car-battery monitor. It has no account, no ads, and no tracking. It is an independent project and is not affiliated with the battery monitor's manufacturer.",
-  "licensesTitle": "Open-source licenses",
+  "licensesTitle": "Open-Source Licenses",
   "helpTitle": "Help",
   "helpIntro": "Need help or found a problem? Please tell us on the project's GitHub page. Your browser opens with a draft that you can edit before you submit it.",
   "contactSupport": "Contact support",
@@ -193,21 +193,21 @@
   },
   "termsTitle": "Terms of Service",
   "privacyTitle": "Privacy Policy",
-  "termsSummaryHeading": "The short version",
+  "termsSummaryHeading": "The Short Version",
   "termsSummary": "This app is free software. It comes with no warranty, and nobody who made it is liable for what happens when you use it. Please do not rely on it for safety, and never use it while driving.",
-  "termsLicenseHeading": "Free software",
+  "termsLicenseHeading": "Free Software",
   "termsLicense": "Libre BM6 is free and open-source software. Its source code is available under the Mozilla Public License, version 2.0 (\"MPL 2.0\"). By using the app, you agree to these terms. If you do not agree, please do not use the app.",
-  "termsWarrantyHeading": "No warranty",
+  "termsWarrantyHeading": "No Warranty",
   "termsWarranty": "As section 6 of the MPL 2.0 says, the app is provided \"as is\", without any warranty, whether express, implied, or statutory. There is no promise that it is free of defects, fit for any particular purpose, or non-infringing. You take on the entire risk as to its quality and performance. If it turns out to be defective, you, and not any contributor, bear the cost of any servicing, repair, or correction.",
-  "termsLiabilityHeading": "No liability",
+  "termsLiabilityHeading": "No Liability",
   "termsLiability": "As section 7 of the MPL 2.0 says, no contributor or distributor of the app is liable to you for any damages of any kind, under any legal theory, whether tort (including negligence), contract, or otherwise. This covers direct, indirect, special, incidental, and consequential damages, including lost profits, lost goodwill, work stoppage, and computer failure or malfunction. It does not limit liability for death or personal injury caused by a party's negligence where the law does not allow such a limit. Some jurisdictions do not allow incidental or consequential damages to be excluded or limited, so this part may not apply to you.",
-  "termsIndependentHeading": "Independent project",
+  "termsIndependentHeading": "Independent Project",
   "termsIndependent": "Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor.",
-  "termsAccuracyHeading": "Readings may be wrong",
+  "termsAccuracyHeading": "Readings May Be Wrong",
   "termsAccuracy": "Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.",
   "termsSafetyHeading": "Safety",
   "termsSafety": "Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional.",
-  "termsFullLicenseHeading": "The full license",
+  "termsFullLicenseHeading": "The Full License",
   "termsFullLicense": "The complete text of the MPL 2.0 is available at https://mozilla.org/MPL/2.0/. It governs the software itself.",
   "termsChangesHeading": "Changes",
   "termsChanges": "These terms may change in a future version of the app. The terms shown in the version you use are the ones that apply.",
@@ -221,17 +221,17 @@
       }
     }
   },
-  "privacySummaryHeading": "The short version",
+  "privacySummaryHeading": "The Short Version",
   "privacySummary": "We treat you and your data the way we want to be treated. There is no account, no ads, and no tracking. Nothing leaves your phone unless you choose to report a bug or ask for support.",
-  "privacyStoredHeading": "What the app stores",
+  "privacyStoredHeading": "What the App Stores",
   "privacyStored": "The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.",
-  "privacyNotDoneHeading": "What the app does not do",
+  "privacyNotDoneHeading": "What the App Does Not Do",
   "privacyNotDone": "There is no account, sign-in, advertising, analytics, or crash reporting. The app does not request internet access, so it cannot send anything off your phone. It does not access your location.",
-  "privacyBluetoothHeading": "Bluetooth permissions",
+  "privacyBluetoothHeading": "Bluetooth Permissions",
   "privacyBluetooth": "The app asks for permission to find and connect to nearby Bluetooth devices. It uses that permission only to find your battery monitor and read it. It tells the system that Bluetooth scans are never used to work out your location.",
-  "privacyBugReportHeading": "Bug reports and support",
+  "privacyBugReportHeading": "Bug Reports and Support",
   "privacyBugReport": "If you tap Report a bug or Contact support, the app opens the project's GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and build number and the Android version and API level, and you can edit or remove them before you submit. GitHub's own terms and privacy policy apply there. The app itself still has no network access.",
-  "privacySourceHeading": "Source code",
+  "privacySourceHeading": "Source Code",
   "privacySource": "The app is free software under the Mozilla Public License 2.0, available at https://mozilla.org/MPL/2.0/. Anyone can read its source code to check these statements.",
   "privacyChangesHeading": "Changes",
   "privacyChanges": "This policy may change in a future version of the app. The policy shown in the version you use is the one that applies.",

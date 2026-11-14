@@ -151,7 +151,7 @@ abstract class AppLocalizations {
   /// No description provided for @devicesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Saved battery monitors'**
+  /// **'Saved Battery Monitors'**
   String get devicesTitle;
 
   /// No description provided for @devicesEmpty.
@@ -181,7 +181,7 @@ abstract class AppLocalizations {
   /// No description provided for @renameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Rename battery monitor'**
+  /// **'Rename Battery Monitor'**
   String get renameTitle;
 
   /// No description provided for @aliasLabel.
@@ -193,7 +193,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete battery monitor?'**
+  /// **'Delete Battery Monitor?'**
   String get deleteTitle;
 
   /// No description provided for @deleteMessage.
@@ -205,7 +205,7 @@ abstract class AppLocalizations {
   /// No description provided for @scannerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Find a battery monitor'**
+  /// **'Find a Battery Monitor'**
   String get scannerTitle;
 
   /// No description provided for @scannerChecking.
@@ -241,7 +241,7 @@ abstract class AppLocalizations {
   /// No description provided for @saveAsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Save as'**
+  /// **'Save As'**
   String get saveAsTitle;
 
   /// Suggested name for a new battery monitor. The suffix is the last four characters of its address.
@@ -397,7 +397,7 @@ abstract class AppLocalizations {
   /// No description provided for @licensesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Open-source licenses'**
+  /// **'Open-Source Licenses'**
   String get licensesTitle;
 
   /// No description provided for @helpTitle.
@@ -463,7 +463,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsSummaryHeading.
   ///
   /// In en, this message translates to:
-  /// **'The short version'**
+  /// **'The Short Version'**
   String get termsSummaryHeading;
 
   /// No description provided for @termsSummary.
@@ -475,7 +475,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsLicenseHeading.
   ///
   /// In en, this message translates to:
-  /// **'Free software'**
+  /// **'Free Software'**
   String get termsLicenseHeading;
 
   /// No description provided for @termsLicense.
@@ -487,7 +487,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsWarrantyHeading.
   ///
   /// In en, this message translates to:
-  /// **'No warranty'**
+  /// **'No Warranty'**
   String get termsWarrantyHeading;
 
   /// No description provided for @termsWarranty.
@@ -499,7 +499,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsLiabilityHeading.
   ///
   /// In en, this message translates to:
-  /// **'No liability'**
+  /// **'No Liability'**
   String get termsLiabilityHeading;
 
   /// No description provided for @termsLiability.
@@ -511,7 +511,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsIndependentHeading.
   ///
   /// In en, this message translates to:
-  /// **'Independent project'**
+  /// **'Independent Project'**
   String get termsIndependentHeading;
 
   /// No description provided for @termsIndependent.
@@ -523,7 +523,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsAccuracyHeading.
   ///
   /// In en, this message translates to:
-  /// **'Readings may be wrong'**
+  /// **'Readings May Be Wrong'**
   String get termsAccuracyHeading;
 
   /// No description provided for @termsAccuracy.
@@ -547,7 +547,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsFullLicenseHeading.
   ///
   /// In en, this message translates to:
-  /// **'The full license'**
+  /// **'The Full License'**
   String get termsFullLicenseHeading;
 
   /// No description provided for @termsFullLicense.
@@ -583,7 +583,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacySummaryHeading.
   ///
   /// In en, this message translates to:
-  /// **'The short version'**
+  /// **'The Short Version'**
   String get privacySummaryHeading;
 
   /// No description provided for @privacySummary.
@@ -595,7 +595,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyStoredHeading.
   ///
   /// In en, this message translates to:
-  /// **'What the app stores'**
+  /// **'What the App Stores'**
   String get privacyStoredHeading;
 
   /// No description provided for @privacyStored.
@@ -607,7 +607,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyNotDoneHeading.
   ///
   /// In en, this message translates to:
-  /// **'What the app does not do'**
+  /// **'What the App Does Not Do'**
   String get privacyNotDoneHeading;
 
   /// No description provided for @privacyNotDone.
@@ -619,7 +619,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBluetoothHeading.
   ///
   /// In en, this message translates to:
-  /// **'Bluetooth permissions'**
+  /// **'Bluetooth Permissions'**
   String get privacyBluetoothHeading;
 
   /// No description provided for @privacyBluetooth.
@@ -631,7 +631,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBugReportHeading.
   ///
   /// In en, this message translates to:
-  /// **'Bug reports and support'**
+  /// **'Bug Reports and Support'**
   String get privacyBugReportHeading;
 
   /// No description provided for @privacyBugReport.
@@ -643,7 +643,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacySourceHeading.
   ///
   /// In en, this message translates to:
-  /// **'Source code'**
+  /// **'Source Code'**
   String get privacySourceHeading;
 
   /// No description provided for @privacySource.

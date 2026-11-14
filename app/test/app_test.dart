@@ -13,12 +13,12 @@ void main() {
     ) async {
       final store = await pumpApp(tester, prefs: {});
       expect(find.text('Terms of Service'), findsOneWidget);
-      expect(find.text('Saved battery monitors'), findsNothing);
+      expect(find.text('Saved Battery Monitors'), findsNothing);
 
       await tester.tap(find.text('Accept'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Saved battery monitors'), findsOneWidget);
+      expect(find.text('Saved Battery Monitors'), findsOneWidget);
       expect(store.termsAccepted, isTrue);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('acceptedTerms'), termsFingerprint());
@@ -26,7 +26,7 @@ void main() {
       // Relaunch.
       await tester.pumpWidget(const SizedBox());
       await pumpApp(tester, prefs: {'acceptedTerms': termsFingerprint()});
-      expect(find.text('Saved battery monitors'), findsOneWidget);
+      expect(find.text('Saved Battery Monitors'), findsOneWidget);
     });
 
     testWidgets('shows the terms again when they have changed', (tester) async {
@@ -63,7 +63,7 @@ void main() {
     testWidgets('skips the terms once accepted', (tester) async {
       await pumpApp(tester);
 
-      expect(find.text('Saved battery monitors'), findsOneWidget);
+      expect(find.text('Saved Battery Monitors'), findsOneWidget);
       expect(find.text('Accept'), findsNothing);
     });
 
@@ -193,7 +193,7 @@ void main() {
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       await pumpApp(tester);
 
-      final context = tester.element(find.text('Saved battery monitors'));
+      final context = tester.element(find.text('Saved Battery Monitors'));
       expect(Theme.of(context).brightness, Brightness.dark);
       expect(Theme.of(context).colorScheme.surface, Colors.black);
     });
@@ -201,7 +201,7 @@ void main() {
     testWidgets('builds in light mode', (tester) async {
       await pumpApp(tester);
 
-      final context = tester.element(find.text('Saved battery monitors'));
+      final context = tester.element(find.text('Saved Battery Monitors'));
       expect(Theme.of(context).brightness, Brightness.light);
     });
   });
