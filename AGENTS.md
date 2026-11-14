@@ -59,6 +59,14 @@ A file that is not on this list is off limits until Tag names it explicitly. Tha
 Stop immediately. Tell Tag exactly what you read. Do not write or change any code until he
 decides how to proceed.
 
+## The library is frozen
+
+`packages/libre_bm6` and `packages/libre_bm6_universal_ble` are frozen as of 2026-11-14. Do not
+change either package, including its tests, unless Tag explicitly unfreezes it for a named change.
+If the app needs different behavior, work around it in `app/` and report the gap to Tag. Any
+permitted change is made under the clean-room rule above and recorded in
+`cleanroom/IMPLEMENTATION-LOG.adoc`.
+
 ## Layout
 
 * `cleanroom/` holds the specification and both process logs. It is read-only for the implementation side, apart from `cleanroom/IMPLEMENTATION-LOG.adoc`.
