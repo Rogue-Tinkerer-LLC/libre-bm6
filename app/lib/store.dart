@@ -16,7 +16,7 @@ class SavedDevice {
 /// so any change to the Terms asks again.
 class Store extends ChangeNotifier {
   Store(this._prefs, {required this.termsFingerprint})
-    : _devices = _decode(_prefs.getString(_devicesKey));
+    : _devices = _decode(_prefs.get(_devicesKey));
 
   static const _termsKey = 'acceptedTerms';
   static const _devicesKey = 'devices';
@@ -25,7 +25,7 @@ class Store extends ChangeNotifier {
   final String termsFingerprint;
   final List<SavedDevice> _devices;
 
-  bool get termsAccepted => _prefs.getString(_termsKey) == termsFingerprint;
+  bool get termsAccepted => _prefs.get(_termsKey) == termsFingerprint;
 
   List<SavedDevice> get devices => List.unmodifiable(_devices);
 
@@ -60,9 +60,17 @@ class Store extends ChangeNotifier {
     );
   }
 
-  static List<SavedDevice> _decode(String? json) => [
-    if (json != null)
-      for (final d in jsonDecode(json) as List<dynamic>)
-        SavedDevice(d['id'] as String, d['alias'] as String),
-  ];
+  /// Unreadable saved data is treated as an empty list, so a bad value
+  /// cannot stop the app from starting.
+  static List<SavedDevice> _decode(Object? json) {
+    if (json is! String) return [];
+    try {
+      return [
+        for (final d in jsonDecode(json) as List<dynamic>)
+          SavedDevice(d['id'] as String, d['alias'] as String),
+      ];
+    } catch (_) {
+      return [];
+    }
+  }
 }

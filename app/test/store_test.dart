@@ -52,6 +52,33 @@ void main() {
       );
     });
 
+    group('unreadable saved data', () {
+      Future<Store> reloadWith(Map<String, Object> values) async {
+        SharedPreferences.setMockInitialValues(values);
+        return reload();
+      }
+
+      test('treats invalid JSON as no devices', () async {
+        expect((await reloadWith({'devices': 'not json'})).devices, isEmpty);
+      });
+
+      test('treats an entry missing its alias as no devices', () async {
+        final store = await reloadWith({'devices': '[{"id":"x"}]'});
+
+        expect(store.devices, isEmpty);
+      });
+
+      test(
+        'treats a non-string accepted-terms value as not accepted',
+        () async {
+          expect(
+            (await reloadWith({'acceptedTerms': 5})).termsAccepted,
+            isFalse,
+          );
+        },
+      );
+    });
+
     test('notifies listeners on change', () async {
       final store = await reload();
       var notified = 0;
