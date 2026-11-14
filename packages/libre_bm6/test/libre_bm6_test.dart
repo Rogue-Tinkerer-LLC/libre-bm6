@@ -183,13 +183,26 @@ void main() {
     });
 
     test('decodeScanRecord takes the first 0x11 0xFF structure', () {
+      final second = encryptBlock(
+        hex('11 22 33 44 55 66 05 dc 32 02 00 00 00 00 00 00'),
+      );
       final record = [
         0x02, 0x01, 0x06, // flags
         0x1a, 0xff, 0x4c, 0x00, 0x02, 0x15, ...List.filled(21, 0), // iBeacon
         0x04, 0x09, 0x42, 0x4d, 0x36, // name "BM6"
         0x11, 0xff, ...hex(vectorCiphertext),
+        0x11, 0xff, ...second,
       ];
       expectVector(decodeScanRecord(record));
+    });
+
+    test('decodeScanRecord ignores 11 FF inside another structure', () {
+      final inside = [0x05, 0x16, 0x11, 0xff, 0x00, 0x00];
+      expect(decodeScanRecord(inside), isNull);
+      expect(decodeScanRecord([...inside, 0x02, 0x01, 0x06]), isNull);
+      expectVector(
+        decodeScanRecord([...inside, 0x11, 0xff, ...hex(vectorCiphertext)]),
+      );
     });
 
     test('decodeScanRecord returns null without the structure', () {
