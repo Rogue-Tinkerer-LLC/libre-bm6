@@ -267,3 +267,10 @@ These are hardware observations for Tag to relay.
 * Whether the device keeps advertising while connected is still unsettled. No new block appeared during either connected session.
 * `FFF3` accepts a write with response, observed on Linux. Through `universal_ble` on Android a write without response is refused client-side because the characteristic declares only `write`.
 * Advertisement and live voltages agreed in range. They were not compared at the same instant.
+
+== Library freeze
+
+* Tag froze the library, `packages/libre_bm6` and `packages/libre_bm6_universal_ble`, on 2026-11-14 once it had been confirmed on hardware.
+* He unfroze it once the same day for a single fix, `8bd8d68`, made by a fresh implementer under the clean-room rule.
+* The library is frozen again as of `8bd8d68`. Further changes need Tag's explicit decision to unfreeze.
+* Work built on top of the frozen library is outside the scope of this log.
