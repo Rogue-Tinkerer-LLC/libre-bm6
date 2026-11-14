@@ -19,13 +19,13 @@ This list is exhaustive.
 * Source and tests under `packages/`
 * Source and tests under `app/`
 * `AGENTS.md` (this file)
-* `IMPLEMENTATION-LOG.adoc`, the implementation side's own history
+* `cleanroom/IMPLEMENTATION-LOG.adoc`, the implementation side's own history
 * `.gitignore` at the repository root
 * General language and tooling guides that say nothing about this device, and the documentation or
   source of generic third-party packages such as `universal_ble` and `pointycastle`
 
 A file that is not on this list is off limits until Tag names it explicitly. That includes
-`CLEANROOM-LOG.adoc`, `README.md`, and any other or future file under `cleanroom/`.
+`cleanroom/CLEANROOM-LOG.adoc`, `README.md`, and any other or future file under `cleanroom/`.
 
 ### Never
 
@@ -60,7 +60,7 @@ decides how to proceed.
 
 ## Layout
 
-* `cleanroom/` holds the specification. It is read-only for the implementation side.
+* `cleanroom/` holds the specification and both process logs. It is read-only for the implementation side, apart from `cleanroom/IMPLEMENTATION-LOG.adoc`.
 * `packages/libre_bm6` is the pure Dart protocol codec.
 * `packages/libre_bm6_universal_ble` is the Flutter adapter on `universal_ble`.
 * `app/` is the Android app built on the adapter.
