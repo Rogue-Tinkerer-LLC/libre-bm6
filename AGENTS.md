@@ -18,6 +18,7 @@ This list is exhaustive.
 * `cleanroom/02-packets.adoc`
 * Source and tests under `packages/`
 * `AGENTS.md` (this file)
+* `IMPLEMENTATION-LOG.adoc`, the implementation side's own history
 * General language and tooling guides that say nothing about this device, and the documentation or
   source of generic third-party packages such as `universal_ble` and `pointycastle`
 
