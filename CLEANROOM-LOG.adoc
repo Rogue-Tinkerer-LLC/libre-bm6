@@ -1,0 +1,141 @@
+= Clean-Room Process Log: BM6 Battery Monitor Protocol
+
+A factual record of how the protocol specification in `cleanroom/` was produced on 2026-11-14.
+
+This log describes process only. It deliberately contains no vendor source identifiers, no protocol constants, and no device address, so it can be read by anyone without contaminating the clean side. It is a record of events, not legal advice.
+
+== Purpose
+
+* The owner, Tag, purchased an Ancel BM200 Bluetooth battery monitor (advertised name `BM6`).
+* The vendor's Android app requires an account sign-in and tracks location. The owner does not accept either.
+* The goal is interoperability: a new, independent, open source app that reads the owner's own monitor.
+* The stated requirement is live battery voltage, with temperature as a secondary wish.
+* No vendor code, assets, or text are to be reused.
+
+== Method
+
+The work was split into a dirty side and a clean side.
+
+* The dirty side reads the vendor app and writes a functional specification in plain language.
+* The clean side builds the new app from that specification alone and never sees the vendor app.
+* This log covers the dirty side only. The clean side had not started when this log was written.
+
+== Who did what
+
+* Tag directed the work through a Claude Code session on his laptop. He gave instructions and received written summaries.
+* The orchestrating session (Claude Fable 5.2) planned the work, briefed subagents, ran verification commands, and wrote this log. It did not read the decompiled source. It did read the subagents' summaries, which named decompiled files and classes.
+* Subagents (Claude Sonnet, Opus, and Haiku models) did the acquisition, analysis, review, test tooling, and spec edits.
+* The session did not display decompiled source code to Tag. He saw summaries, the field tables, and test output.
+
+== Timeline
+
+All times are local (MST) on 2026-11-14 and approximate unless a tool printed them.
+
+=== Acquisition (~11:30 to 11:39)
+
+* The owner supplied the address of his own phone (Pixel 10 Pro XL) with wireless debugging enabled, and granted permission to connect to it.
+* The session connected with `adb` and found the installed package `com.dc.bm6_ancel`.
+* A Sonnet subagent pulled the installed APK files with `adb pull`. Version 2.0.6, version code 23.
+** `base.apk`, 30,160,528 bytes
+** `split_config.arm64_v8a.apk`, 7,177,098 bytes
+** `split_config.xxhdpi.apk`, 115,995 bytes
+* Only read-only `adb` commands and `adb pull` were used. Nothing on the phone was installed, removed, or changed.
+* The app was obtained from the owner's own phone, where he had installed it. No APK was downloaded from any other source.
+* The same subagent downloaded jadx 1.5.6 from its official GitHub releases and decompiled `base.apk`. Output: 13,947 Java files, 35 decompiler errors.
+* The app was not packed or protected beyond standard R8 name obfuscation. No protection measure was bypassed.
+* Seven native libraries were extracted and identified by name as image codecs, a barcode scanner, and analytics. None relate to Bluetooth. They were not disassembled.
+* Nothing from the APK was ever executed.
+
+=== Analysis (~11:39 to 11:47)
+
+* Three Opus subagents were started in parallel, each told to write a plain-language functional description with no copied code and no vendor identifiers.
+** Connection and session lifecycle. Wrote `cleanroom/01-connection.adoc`.
+** Wire format and commands. Wrote `cleanroom/02-packets.adoc`.
+** App-level interpretation of values. Stopped by the orchestrator before it produced a file, after the owner narrowed the scope to live voltage.
+* The two remaining subagents were told mid-task to narrow to the live-voltage path and to list other device capabilities in one line each.
+* Each subagent was told to mark anything inferred, as opposed to read from the code, as unverified.
+
+=== Independent review (~11:47 to 11:55)
+
+* A fourth Opus subagent re-derived the key facts from the decompiled code before reading the two spec files, then corrected the files in place.
+* It reported ten corrections and confirmed the cipher, the service and characteristic identifiers, and the live-data layout.
+* It removed clean-room hygiene violations: one vendor server method name, one vendor API type code, and several quoted vendor UI strings, which it replaced with paraphrases.
+* It reported finding no vendor class names, decompiled file paths, or copied code in either file.
+
+=== Hardware tests (~11:47 to 12:02)
+
+The owner asked for each test and was present at the vehicle. All tests ran from his laptop's Bluetooth adapter against his own monitor.
+
+* A Sonnet subagent wrote a passive scan script from the spec's description. It listened to advertisements only.
+* Passive scans were run at ~11:48, ~11:53, ~11:54, and ~12:01. The advertisements decoded as the spec predicted.
+* The owner then explicitly approved a connected test, after asking what it involved.
+* A Sonnet subagent wrote a connected test script with a hard allowlist of three read-type commands. It ran once at ~12:00.
+** Exactly one command was sent: the live-data request.
+** The monitor streamed readings for 30 seconds. The script then disconnected.
+** No setting on the monitor was changed. The firmware update service was not touched.
+* The owner measured 14.95 V to 14.96 V at the battery terminals with a multimeter. The monitor reported 14.85 V to 14.89 V at the same time.
+* No vendor server was contacted at any point, by any tool, during this work.
+* The vendor app was not run as part of any test.
+
+=== Recording results (~11:55 to 12:08)
+
+* A Haiku subagent added the measurements to the spec files, with the monitor's real address replaced by a placeholder.
+* The laptop crashed at ~12:03 when the lid was closed, partway through the second update. The subagent was resumed at ~12:07 and finished. It re-read the first file and reported nothing half-written or duplicated.
+* The orchestrator then checked both files with text searches for the monitor's real address, vendor package and class names, decompiled file paths, and em dashes. All searches came back empty.
+
+=== Cleanup (~12:10 to 12:17)
+
+* The two test scripts and their Python environment were deleted at the owner's request. They were written in the dirty session and are treated as dirty.
+* The entire `cleanroom/dirty/` directory (302 MB) was deleted at the owner's request: the three APK files, the decompiled source, the extracted native libraries, and jadx.
+* Subagent helper scripts and the decompiler log had been written under `/tmp`. The crash and reboot cleared them before cleanup.
+* Empty jadx cache and config directories in the owner's home directory are dated 2026-09-14. They predate this work and were left alone.
+* Nothing was committed to git at any point.
+* At the owner's request, a CC0 1.0 public domain dedication was appended to each spec file and the official legal code was downloaded from creativecommons.org into `cleanroom/LICENSE`. No other spec content changed, and the checksums below were retaken.
+
+== What exists now
+
+Only this log, the two spec files, and the spec's `LICENSE` file remain in the project.
+
+|===
+| File | Lines | SHA-256
+
+| `cleanroom/01-connection.adoc`
+| 415
+| `e5b60be388c7481bb295c1c24cab0bd5cb0c10bf93fdd119d8bc0acc8d77bada`
+
+| `cleanroom/02-packets.adoc`
+| 309
+| `8180ed1815b4fdc290084e492188d7a8f5b06529407ee7ccc5f305aa79397ab9`
+
+| `cleanroom/LICENSE`
+| 121
+| `a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499`
+|===
+
+Checksums were retaken after a CC0 1.0 dedication section was appended to each spec file and the license text was added. The spec content above that section is unchanged from the 12:18 MST state, whose checksums were `3cb7133d7c116a08d0db35a4bfa3a9f78263ef88e0ccd3ae5f2579a699967f42` (01-connection) and `baff46dacd8a1b672e0f9f6b7b00d187cc6620056d6cb6d5e5a1f159360452da` (02-packets). A later mismatch means the file changed after the dirty side closed.
+
+== What the spec contains
+
+* Functional facts needed to talk to the device: identifiers, byte layouts, the cipher and its constant key, command bytes, timings, and the names the device advertises.
+* Descriptions in the analysts' own words and their own naming.
+* Measurements from the owner's own unit.
+* No vendor source code, no vendor class, method, or variable names, no decompiled file paths, and no verbatim vendor UI text, as far as the review and the searches above could establish.
+
+== Known limits of this process
+
+Stated plainly so that nobody later relies on more than was done.
+
+* **The hygiene check is a review, not a proof.** One independent subagent and a set of text searches checked the spec. No human has yet read it line by line against the vendor source, and the source is now deleted.
+* **The transcript of the dirty session is dirty.** It contains subagent summaries that name decompiled files and classes. The clean session must be a new session that reads only `cleanroom/`.
+* **The owner has seen spec-level detail.** He saw field tables and test output in chat. He was not shown decompiled source by this session.
+* **Both sides use AI models from the same vendor.** The separation is by session and by input, not by a different team of people.
+* **APK checksums were not recorded** before the files were deleted. The version and byte sizes above are the available identification.
+* **Timestamps are approximate** where marked. Exact times exist only for test output that printed them.
+* **Some device behavior is still unverified** and is marked as such inside the spec.
+
+== Instructions for the clean session
+
+* Read `cleanroom/01-connection.adoc` and `cleanroom/02-packets.adoc`. Read nothing else about this device's vendor app.
+* Do not obtain, open, or decompile the vendor app.
+* Do not resume or read the transcript of the session that produced this log.
+* Write all code, including any test tooling, fresh from the spec.
