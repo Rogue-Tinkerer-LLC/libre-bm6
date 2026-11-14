@@ -175,7 +175,7 @@ Observed:
 * Notifications kept arriving during the ~2 s that cancel took.
 * An example data frame: `D1 55 07 00 0C 02 64 05 80 00 00 00 00 02 00 00`, which is 12 °C, status 2, 100 %, 14.08 V.
 
-Not tested: negative temperatures, status 1, a stream longer than ~30 s, Android, and iOS.
+Not tested: negative temperatures, status 1, a stream longer than ~30 s, and iOS.
 
 === Android
 
@@ -187,7 +187,7 @@ Not tested: negative temperatures, status 1, a stream longer than ~30 s, Android
 * The monitor's address type is public.
 * Connection attempts made out of range ended with Android status 147 (connection timeout) after 30 s each.
 
-Not yet confirmed at the time of this entry: live data on Android after the fix.
+Confirmed later the same day: with the write-with-response, the phone connected in ~1.6 s, discovered services, subscribed to `FFF4`, and held the connection. Live readings arrived and were displayed.
 
 === The capture
 
