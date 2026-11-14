@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -381,6 +383,51 @@ void main() {
       expect(events, isEmpty);
       expect(ble.listeners, 0);
       expect(ble.calls.last, 'disconnect');
+    });
+
+    test('replays the hardware capture', () async {
+      final capture = jsonDecode(
+        File('../libre_bm6/test/fixtures/capture-2026-11-14.json')
+            .readAsStringSync(),
+      ) as Map<String, Object?>;
+      final phase = (capture['phases'] as List<Object?>)
+          .cast<Map<String, Object?>>()
+          .singleWhere((p) => p['name'] == 'phase2-live');
+      final notifications = (phase['notifications'] as List<Object?>)
+          .cast<Map<String, Object?>>();
+      final captured = (phase['frames'] as List<Object?>)
+          .cast<Map<String, Object?>>();
+      Map<String, Object?> fields(LiveData d) => {
+        'temperature': d.temperature,
+        'status': d.status,
+        'stateOfCharge': d.stateOfCharge,
+        'voltage': d.voltage,
+        'rapidAccelerations': d.rapidAccelerations,
+        'rapidDecelerations': d.rapidDecelerations,
+      };
+      Map<String, Object?> matches(Map<String, Object?> f) =>
+          {...f, 'voltage': closeTo(f['voltage']! as double, 1e-9)}
+            ..remove('t');
+
+      final frames = <LiveData>[];
+      final subscription = liveData(deviceId).listen(frames.add);
+      await settle();
+      for (final n in notifications) {
+        ble.notify(hex(n['ciphertext'] as String));
+      }
+      await settle();
+      await subscription.cancel();
+
+      final decoded = [
+        for (final n in notifications)
+          LiveData.parse(hex(n['plaintext'] as String)),
+      ];
+      expect(decoded.first, isNull, reason: 'the acknowledgement');
+      expect(decoded.skip(1), everyElement(isNotNull));
+      expect(frames.map(fields), [
+        for (final d in decoded.skip(1)) matches(fields(d!)),
+      ]);
+      expect(frames.take(captured.length).map(fields), captured.map(matches));
     });
   });
 }
