@@ -63,6 +63,10 @@ Stream<({String deviceId, Advertisement advertisement})> scan() {
 /// Cancelling the subscription disconnects. The stream ends if the device
 /// disconnects or setup fails. A notification that is not 16 bytes arrives
 /// as an [ArgumentError] event and does not end the stream.
+///
+/// On Linux, call [scan] first in the same process. The `universal_ble`
+/// Linux backend only knows devices a scan has reported, so setup otherwise
+/// fails with a `deviceNotFound` [UniversalBleException].
 Stream<LiveData> liveData(String deviceId) {
   final subscriptions = <StreamSubscription<Object?>>[];
   late final StreamController<LiveData> controller;
