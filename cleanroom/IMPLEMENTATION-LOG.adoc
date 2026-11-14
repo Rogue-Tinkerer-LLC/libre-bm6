@@ -106,6 +106,9 @@ The session made these.
 
 |`39129c5`
 |Changed `liveData()` to write the start command with response, after an Android test (see Hardware testing).
+
+|`8bd8d68`
+|Made cancelling a `scan()` subscription never throw (see Known limits).
 |===
 
 One implementation note: the first adapter draft used `async*` generators, and cancelling a subscription hung inside `await for`. The adapter uses explicit stream controllers instead.
@@ -252,6 +255,7 @@ No issues found!
 
 * Passive mode on Linux is suited to testing only. BlueZ keeps every block it has seen, never dropped one during the test (the list grew from 12 to 15 entries), and gives no signal for which is current. Android is the next test target.
 * On Linux, `liveData()` needs a scan first in the same process.
+* On Android, `universal_ble` 3.3.0 throws from stop-scan while Bluetooth is off. Before the fix in `8bd8d68`, cancelling a `scan()` subscription then failed, and the failed cancel was returned on every later cancel. Found on 2026-11-14 by code review of a consumer and reproduced with a fake platform. Not observed on hardware.
 * A device with no OS-reported name is skipped, because `universal_ble` does not expose the raw advertisement record. `decodeScanRecord` covers stacks that do.
 * There is no checksum in the protocol. A block from another device that passes the service and name filters decodes as garbage. The caller's MAC comparison is the only guard.
 
