@@ -1,0 +1,14 @@
+name: libre_bm6
+description: Protocol codec for the BM6 BLE battery monitor.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  pointycastle: ^4.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
