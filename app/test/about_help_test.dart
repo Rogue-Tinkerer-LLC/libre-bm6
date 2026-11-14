@@ -30,13 +30,13 @@ void main() {
       expect(find.byType(LicensePage), findsOneWidget);
     });
 
-    testWidgets('links to the terms and the privacy policy', (tester) async {
+    testWidgets('has no Terms or Privacy Policy rows', (tester) async {
       await tester.pumpWidget(localized(AboutPage(env: FakeEnv().env)));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Terms of Service'));
-      await tester.pumpAndSettle();
 
-      expect(find.text('No warranty'), findsOneWidget);
+      expect(find.text('Terms of Service'), findsNothing);
+      expect(find.text('Privacy Policy'), findsNothing);
+      expect(find.text('Open-source licenses'), findsOneWidget);
     });
   });
 

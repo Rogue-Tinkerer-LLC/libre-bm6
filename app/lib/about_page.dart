@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'app_env.dart';
 import 'l10n/app_localizations.dart';
-import 'legal_page.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key, required this.env});
@@ -15,9 +14,6 @@ class AboutPage extends StatefulWidget {
 
 class _AboutPageState extends State<AboutPage> {
   late final Future<AppInfo> _info = widget.env.info();
-
-  void _push(Widget page) =>
-      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
 
   @override
   Widget build(BuildContext context) {
@@ -47,16 +43,6 @@ class _AboutPageState extends State<AboutPage> {
                 ),
               ),
               const Divider(),
-              ListTile(
-                title: Text(l.termsTitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(TermsPage(env: widget.env)),
-              ),
-              ListTile(
-                title: Text(l.privacyTitle),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(PrivacyPage(env: widget.env)),
-              ),
               ListTile(
                 title: Text(l.licensesTitle),
                 trailing: const Icon(Icons.chevron_right),
