@@ -40,13 +40,27 @@ Advertisement advertisement({String mac = deviceId, double voltage = 12.6}) =>
 /// Bluetooth with no radio: tests push results through the controllers.
 class FakeBle {
   BleReadiness readiness = BleReadiness.ready;
-  final scanResults = StreamController<ScanResult>();
+  final scanStreams = <StreamController<ScanResult>>[];
   final liveStreams = <StreamController<LiveData>>[];
+  int scanListens = 0;
+  int scanCancels = 0;
 
+  /// The most recent scan.
+  StreamController<ScanResult> get scanResults => scanStreams.last;
+
+  // The async onCancel callbacks return futures from the test zone, which
+  // the widget tester's fake clock can complete.
   Ble get ble => Ble(
-    scan: () => scanResults.stream,
+    scan: () {
+      final controller = StreamController<ScanResult>(
+        onListen: () => scanListens++,
+        onCancel: () async => scanCancels++,
+      );
+      scanStreams.add(controller);
+      return controller.stream;
+    },
     liveData: (id) {
-      final controller = StreamController<LiveData>();
+      final controller = StreamController<LiveData>(onCancel: () async {});
       liveStreams.add(controller);
       return controller.stream;
     },

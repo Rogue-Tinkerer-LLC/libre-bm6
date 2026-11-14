@@ -118,5 +118,45 @@ void main() {
 
       expect(find.textContaining('Bluetooth is off'), findsOneWidget);
     });
+
+    Future<void> pullDown(WidgetTester tester) async {
+      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+    }
+
+    testWidgets('pulling down clears the list and scans again', (tester) async {
+      final ble = await openScanner(tester);
+      ble.scanResults.add((deviceId: deviceId, advertisement: advertisement()));
+      await tester.pump();
+      expect(find.text(deviceId), findsOneWidget);
+
+      await pullDown(tester);
+
+      expect(ble.scanListens, 2);
+      expect(ble.scanCancels, 1);
+      expect(find.text(deviceId), findsNothing);
+      expect(find.textContaining('Looking for monitors'), findsOneWidget);
+    });
+
+    testWidgets('pulling down works from the empty state', (tester) async {
+      final ble = await openScanner(tester);
+
+      await pullDown(tester);
+
+      expect(ble.scanListens, 2);
+    });
+
+    testWidgets('pulling down shows a failed readiness check', (tester) async {
+      final ble = await openScanner(tester);
+      ble.readiness = BleReadiness.off;
+
+      await pullDown(tester);
+
+      expect(ble.scanCancels, 1);
+      expect(ble.scanListens, 1);
+      expect(find.textContaining('Bluetooth is off'), findsOneWidget);
+    });
   });
 }

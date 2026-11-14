@@ -31,6 +31,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Try again';
 
   @override
+  String get refreshLabel => 'Refresh';
+
+  @override
   String get noValue => '–';
 
   @override

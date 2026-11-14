@@ -52,6 +52,10 @@ class LiveSession {
   Timer? _retry;
   Timer? _watchdog;
   bool _closed = false;
+  // Bumped by restart() so an automatic reconnect already waiting on a
+  // cancel does not open a second connection.
+  int _generation = 0;
+  Completer<void>? _restartDone;
 
   void start() => _open();
 
@@ -67,7 +71,36 @@ class LiveSession {
     );
   }
 
+  /// Reconnects now, skipping any backoff wait. Completes when the new
+  /// connection delivers a frame, reports an error, or ends. A call while a
+  /// restart is in flight joins it.
+  Future<void> restart() {
+    if (_closed) return Future.value();
+    final inFlight = _restartDone;
+    if (inFlight != null) return inFlight.future;
+    final done = _restartDone = Completer<void>();
+    _generation++;
+    _retry?.cancel();
+    _watchdog?.cancel();
+    final old = _subscription;
+    _subscription = null;
+    _delay = firstDelay;
+    state = LinkState.reconnecting;
+    onChange();
+    _cancelling = _cancelling
+        .then<void>((_) => old?.cancel())
+        .catchError((Object _) {});
+    _cancelling.then((_) => _open());
+    return done.future;
+  }
+
+  void _settleRestart() {
+    _restartDone?.complete();
+    _restartDone = null;
+  }
+
   void _onData(LiveData data) {
+    _settleRestart();
     if (!_gotFrame) lastError = null;
     _gotFrame = true;
     latest = data;
@@ -84,6 +117,7 @@ class LiveSession {
   }
 
   void _onError(Object error) {
+    _settleRestart();
     _sessionError = error;
     lastError = error;
     onChange();
@@ -92,6 +126,7 @@ class LiveSession {
   void _restart(Object problem, {required bool ended}) {
     final old = _subscription;
     if (_closed || old == null) return;
+    if (ended) _settleRestart();
     _subscription = null;
     _watchdog?.cancel();
     lastError = problem;
@@ -105,14 +140,18 @@ class LiveSession {
     _cancelling = ended
         ? Future.value()
         : old.cancel().catchError((Object _) {});
+    final generation = _generation;
     _cancelling.then((_) {
-      if (!_closed) _retry = Timer(delay, _open);
+      if (!_closed && generation == _generation) {
+        _retry = Timer(delay, _open);
+      }
     });
   }
 
   /// Stops reconnecting and disconnects. Completes once the disconnect has.
   Future<void> close() async {
     _closed = true;
+    _settleRestart();
     _retry?.cancel();
     _watchdog?.cancel();
     final subscription = _subscription;

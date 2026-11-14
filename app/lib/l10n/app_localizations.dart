@@ -136,6 +136,12 @@ abstract class AppLocalizations {
   /// **'Try again'**
   String get retry;
 
+  /// Read aloud for the pull-to-refresh indicator.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refreshLabel;
+
   /// Shown in place of a reading that has not arrived yet.
   ///
   /// In en, this message translates to:

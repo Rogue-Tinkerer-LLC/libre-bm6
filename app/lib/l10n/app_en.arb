@@ -16,6 +16,10 @@
   "@retry": {
     "description": "Button that repeats a Bluetooth check after a failure."
   },
+  "refreshLabel": "Refresh",
+  "@refreshLabel": {
+    "description": "Read aloud for the pull-to-refresh indicator."
+  },
   "noValue": "–",
   "@noValue": {
     "description": "Shown in place of a reading that has not arrived yet."

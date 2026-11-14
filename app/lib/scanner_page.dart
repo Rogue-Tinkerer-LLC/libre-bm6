@@ -56,9 +56,12 @@ class _ScannerPageState extends State<ScannerPage> {
 
   Future<void> _start() async {
     await _subscription?.cancel();
+    _subscription = null;
+    if (!mounted) return;
     setState(() {
       _readiness = null;
       _error = null;
+      _found.clear();
     });
     final readiness = await widget.ble.ready();
     if (!mounted) return;
@@ -101,26 +104,35 @@ class _ScannerPageState extends State<ScannerPage> {
         error != null;
     return Scaffold(
       appBar: AppBar(title: Text(l.scannerTitle)),
-      body: ListView(
-        children: [
-          Padding(padding: const EdgeInsets.all(16), child: Text(message)),
-          if (failed)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: OutlinedButton(onPressed: _start, child: Text(l.retry)),
+      body: RefreshIndicator(
+        onRefresh: _start,
+        semanticsLabel: l.refreshLabel,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(padding: const EdgeInsets.all(16), child: Text(message)),
+            if (failed)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: OutlinedButton(
+                    onPressed: _start,
+                    child: Text(l.retry),
+                  ),
+                ),
               ),
-            ),
-          if (_readiness == BleReadiness.ready && _found.isEmpty && !failed)
-            const LinearProgressIndicator(),
-          for (final MapEntry(key: id, value: advertisement) in _found.entries)
-            ListTile(
-              title: Text(advertisement.mac),
-              trailing: Text(l.voltageValue(advertisement.voltage)),
-              onTap: () => _saveAs(id, advertisement),
-            ),
-        ],
+            if (_readiness == BleReadiness.ready && _found.isEmpty && !failed)
+              const LinearProgressIndicator(),
+            for (final MapEntry(key: id, value: advertisement)
+                in _found.entries)
+              ListTile(
+                title: Text(advertisement.mac),
+                trailing: Text(l.voltageValue(advertisement.voltage)),
+                onTap: () => _saveAs(id, advertisement),
+              ),
+          ],
+        ),
       ),
     );
   }

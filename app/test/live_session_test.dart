@@ -231,6 +231,115 @@ void main() {
       });
     });
 
+    test('restart while live waits for the old cancel and resets backoff', () {
+      fakeAsync((async) {
+        startSession(async, cancelDelay: const Duration(seconds: 2));
+        // Grow the backoff first. Each end waits 2 s for its cancel.
+        link.last.close();
+        async.elapse(const Duration(seconds: 4));
+        link.last.close();
+        async.elapse(const Duration(seconds: 6));
+        link.last.add(frame(voltage: 12.4));
+        async.flushMicrotasks();
+        expect(link.streams, hasLength(3));
+
+        var done = false;
+        session.restart().then((_) => done = true);
+        async.flushMicrotasks();
+        expect(session.state, LinkState.reconnecting);
+        expect(session.latest?.voltage, 12.4);
+        expect(link.streams, hasLength(3));
+
+        async.elapse(const Duration(seconds: 2));
+        expect(link.streams, hasLength(4));
+        expect(link.maxActive, 1);
+        expect(done, isFalse);
+
+        link.last.add(frame());
+        async.flushMicrotasks();
+        expect(done, isTrue);
+        expect(session.history, [12.4, 12.6]);
+
+        // The backoff is back at its first value, after the 2 s cancel.
+        link.last.close();
+        async.elapse(const Duration(seconds: 2));
+        expectReconnectAfter(async, const Duration(seconds: 2));
+      });
+    });
+
+    test('restart during a backoff wait connects once, immediately', () {
+      fakeAsync((async) {
+        startSession(async);
+        link.last.close();
+        async.elapse(const Duration(seconds: 1));
+
+        session.restart();
+        async.flushMicrotasks();
+        expect(link.streams, hasLength(2));
+
+        async.elapse(const Duration(minutes: 1));
+        expect(link.streams, hasLength(2));
+      });
+    });
+
+    test('restart while an automatic cancel is pending connects once', () {
+      fakeAsync((async) {
+        startSession(async, cancelDelay: const Duration(seconds: 3));
+        link.last.add(frame());
+        async.elapse(const Duration(seconds: 10)); // stall, cancel pending
+
+        session.restart();
+        async.elapse(const Duration(minutes: 1));
+
+        expect(link.streams, hasLength(2));
+        expect(link.maxActive, 1);
+      });
+    });
+
+    test('restart twice in a row is a single restart', () {
+      fakeAsync((async) {
+        startSession(async);
+        link.last.add(frame());
+        async.flushMicrotasks();
+
+        final first = session.restart();
+        final second = session.restart();
+        async.elapse(const Duration(seconds: 1));
+
+        expect(identical(first, second), isTrue);
+        expect(link.streams, hasLength(2));
+        expect(link.cancels, 1);
+      });
+    });
+
+    test('restart completes when the new connection reports an error', () {
+      fakeAsync((async) {
+        startSession(async);
+        var done = false;
+        session.restart().then((_) => done = true);
+        async.flushMicrotasks();
+
+        link.last.addError(Exception('setup failed'));
+        async.flushMicrotasks();
+        expect(done, isTrue);
+      });
+    });
+
+    test('restart after close does nothing', () {
+      fakeAsync((async) {
+        startSession(async);
+        session.close();
+        async.flushMicrotasks();
+
+        var done = false;
+        session.restart().then((_) => done = true);
+        async.elapse(const Duration(minutes: 1));
+
+        expect(done, isTrue);
+        expect(link.streams, hasLength(1));
+      });
+    });
+
     test('keeps only the most recent voltages', () {
       fakeAsync((async) {
         link = FakeLink();

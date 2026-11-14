@@ -30,6 +30,7 @@ class _MonitorPageState extends State<MonitorPage> {
     },
   );
   BleReadiness? _readiness;
+  bool _started = false;
 
   @override
   void initState() {
@@ -48,7 +49,17 @@ class _MonitorPageState extends State<MonitorPage> {
     final readiness = await widget.ble.ready();
     if (!mounted) return;
     setState(() => _readiness = readiness);
-    if (readiness == BleReadiness.ready) _session.start();
+    if (readiness != BleReadiness.ready) return;
+    _started = true;
+    _session.start();
+  }
+
+  Future<void> _refresh() async {
+    if (!_started) return _start();
+    await _session.restart().timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {},
+    );
   }
 
   @override
@@ -65,62 +76,67 @@ class _MonitorPageState extends State<MonitorPage> {
     };
     return Scaffold(
       appBar: AppBar(title: Text(widget.device.alias)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (readiness == BleReadiness.off ||
-              readiness == BleReadiness.denied) ...[
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        semanticsLabel: l.refreshLabel,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (readiness == BleReadiness.off ||
+                readiness == BleReadiness.denied) ...[
+              Text(
+                readiness == BleReadiness.off
+                    ? l.bluetoothOff
+                    : l.permissionDenied,
+              ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: OutlinedButton(onPressed: _start, child: Text(l.retry)),
+              ),
+            ] else ...[
+              Semantics(
+                liveRegion: true,
+                child: Text(link, style: text.titleMedium),
+              ),
+              if (error != null) Text(describeError(l, error)),
+            ],
+            const SizedBox(height: 24),
+            Text(l.voltageLabel, style: text.labelLarge),
             Text(
-              readiness == BleReadiness.off
-                  ? l.bluetoothOff
-                  : l.permissionDenied,
+              data == null ? l.noValue : l.voltageValue(data.voltage),
+              style: text.displayLarge,
             ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: OutlinedButton(onPressed: _start, child: Text(l.retry)),
+            const SizedBox(height: 16),
+            VoltageChart(voltages: List.of(_session.history)),
+            const SizedBox(height: 16),
+            _Reading(
+              label: l.temperatureLabel,
+              value: data == null
+                  ? l.noValue
+                  : l.temperatureValue(
+                      data.temperature,
+                      celsiusToFahrenheit(data.temperature),
+                    ),
             ),
-          ] else ...[
-            Semantics(
-              liveRegion: true,
-              child: Text(link, style: text.titleMedium),
+            _Reading(
+              label: l.stateOfChargeLabel,
+              value: data == null
+                  ? l.noValue
+                  : l.stateOfChargeValue(data.stateOfCharge),
             ),
-            if (error != null) Text(describeError(l, error)),
+            _Reading(
+              label: l.statusLabel,
+              value: switch (data?.status) {
+                null => l.noValue,
+                0 => l.statusNormal,
+                2 => l.statusCharging,
+                // 1 is low; anything undocumented is treated as low too.
+                _ => l.statusLow,
+              },
+            ),
           ],
-          const SizedBox(height: 24),
-          Text(l.voltageLabel, style: text.labelLarge),
-          Text(
-            data == null ? l.noValue : l.voltageValue(data.voltage),
-            style: text.displayLarge,
-          ),
-          const SizedBox(height: 16),
-          VoltageChart(voltages: List.of(_session.history)),
-          const SizedBox(height: 16),
-          _Reading(
-            label: l.temperatureLabel,
-            value: data == null
-                ? l.noValue
-                : l.temperatureValue(
-                    data.temperature,
-                    celsiusToFahrenheit(data.temperature),
-                  ),
-          ),
-          _Reading(
-            label: l.stateOfChargeLabel,
-            value: data == null
-                ? l.noValue
-                : l.stateOfChargeValue(data.stateOfCharge),
-          ),
-          _Reading(
-            label: l.statusLabel,
-            value: switch (data?.status) {
-              null => l.noValue,
-              0 => l.statusNormal,
-              2 => l.statusCharging,
-              // 1 is low; anything undocumented is treated as low too.
-              _ => l.statusLow,
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

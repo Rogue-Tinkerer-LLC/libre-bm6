@@ -124,5 +124,28 @@ void main() {
       expect(find.textContaining('Bluetooth is off'), findsOneWidget);
       expect(ble.liveStreams, isEmpty);
     });
+
+    testWidgets('pulling down reconnects once and keeps the readings', (
+      tester,
+    ) async {
+      await openMonitor(tester);
+      await send(tester, frame(voltage: 13.95));
+
+      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(ble.liveStreams, hasLength(2));
+      expect(find.text('Reconnecting…'), findsOneWidget);
+      expect(find.text('13.95 V'), findsOneWidget);
+      expect(find.byType(RefreshProgressIndicator), findsOneWidget);
+
+      await send(tester, frame(voltage: 13.9));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RefreshProgressIndicator), findsNothing);
+      expect(find.text('13.90 V'), findsOneWidget);
+      expect(ble.liveStreams, hasLength(2));
+    });
   });
 }
