@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libre_bm6_app/app.dart';
-import 'package:libre_bm6_app/store.dart';
+import 'package:libre_bm6_app/legal_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support.dart';
@@ -19,8 +19,45 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Saved monitors'), findsOneWidget);
-      expect(Store(await SharedPreferences.getInstance()).termsAccepted, true);
       expect(store.termsAccepted, isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('acceptedTerms'), termsFingerprint());
+
+      // Relaunch.
+      await tester.pumpWidget(const SizedBox());
+      await pumpApp(tester, prefs: {'acceptedTerms': termsFingerprint()});
+      expect(find.text('Saved monitors'), findsOneWidget);
+    });
+
+    testWidgets('shows the terms again when they have changed', (tester) async {
+      await pumpApp(
+        tester,
+        prefs: {'acceptedTerms': fnv1a64('an older version of the Terms')},
+      );
+
+      expect(find.text('Accept'), findsOneWidget);
+    });
+
+    testWidgets('treats the legacy accepted flag as not accepted', (
+      tester,
+    ) async {
+      await pumpApp(tester, prefs: {'termsAccepted': true});
+
+      expect(find.text('Accept'), findsOneWidget);
+    });
+
+    testWidgets('stores the same fingerprint under another locale', (
+      tester,
+    ) async {
+      tester.platformDispatcher.localeTestValue = const Locale('de', 'DE');
+      addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+      final store = await pumpApp(tester, prefs: {});
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(store.termsAccepted, isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('acceptedTerms'), termsFingerprint());
     });
 
     testWidgets('skips the terms once accepted', (tester) async {
@@ -79,7 +116,7 @@ void main() {
 
   group('saved devices', () {
     final saved = {
-      'termsAccepted': true,
+      ...accepted,
       'devices': '[{"id":"$deviceId","alias":"Car"}]',
     };
 
@@ -100,7 +137,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Truck'), findsOneWidget);
-      final reloaded = Store(await SharedPreferences.getInstance());
+      final reloaded = await loadStore();
       expect(reloaded.devices.single.alias, 'Truck');
     });
 
@@ -122,7 +159,7 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Delete'));
       await tester.pumpAndSettle();
       expect(find.text('Car'), findsNothing);
-      expect(Store(await SharedPreferences.getInstance()).devices, isEmpty);
+      expect((await loadStore()).devices, isEmpty);
     });
 
     testWidgets('opens the monitor for a tapped device', (tester) async {

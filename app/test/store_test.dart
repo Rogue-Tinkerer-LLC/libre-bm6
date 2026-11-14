@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const deviceId = 'A1:B2:C3:D4:E5:F6';
 
-Future<Store> reload() async => Store(await SharedPreferences.getInstance());
+Future<Store> reload() async =>
+    Store(await SharedPreferences.getInstance(), termsFingerprint: 'abc');
 
 void main() {
   group('Store', () {
@@ -17,10 +18,19 @@ void main() {
       expect(store.devices, isEmpty);
     });
 
-    test('persists terms acceptance', () async {
+    test('persists terms acceptance as the fingerprint', () async {
       await (await reload()).acceptTerms();
 
       expect((await reload()).termsAccepted, isTrue);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('acceptedTerms'), 'abc');
+    });
+
+    test('asks again when the Terms fingerprint changes', () async {
+      await (await reload()).acceptTerms();
+      final prefs = await SharedPreferences.getInstance();
+
+      expect(Store(prefs, termsFingerprint: 'abd').termsAccepted, isFalse);
     });
 
     test('persists added, renamed, and removed devices', () async {

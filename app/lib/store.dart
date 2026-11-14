@@ -11,21 +11,26 @@ class SavedDevice {
 }
 
 /// Terms acceptance and saved devices, persisted in app-local preferences.
+///
+/// Acceptance is stored as the fingerprint of the Terms that were accepted,
+/// so any change to the Terms asks again.
 class Store extends ChangeNotifier {
-  Store(this._prefs) : _devices = _decode(_prefs.getString(_devicesKey));
+  Store(this._prefs, {required this.termsFingerprint})
+    : _devices = _decode(_prefs.getString(_devicesKey));
 
-  static const _termsKey = 'termsAccepted';
+  static const _termsKey = 'acceptedTerms';
   static const _devicesKey = 'devices';
 
   final SharedPreferences _prefs;
+  final String termsFingerprint;
   final List<SavedDevice> _devices;
 
-  bool get termsAccepted => _prefs.getBool(_termsKey) ?? false;
+  bool get termsAccepted => _prefs.getString(_termsKey) == termsFingerprint;
 
   List<SavedDevice> get devices => List.unmodifiable(_devices);
 
   Future<void> acceptTerms() async {
-    await _prefs.setBool(_termsKey, true);
+    await _prefs.setString(_termsKey, termsFingerprint);
     notifyListeners();
   }
 

@@ -6,6 +6,7 @@ import 'package:libre_bm6_app/app.dart';
 import 'package:libre_bm6_app/app_env.dart';
 import 'package:libre_bm6_app/ble.dart';
 import 'package:libre_bm6_app/l10n/app_localizations.dart';
+import 'package:libre_bm6_app/legal_text.dart';
 import 'package:libre_bm6_app/store.dart';
 import 'package:libre_bm6_universal_ble/libre_bm6_universal_ble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,14 +68,22 @@ class FakeEnv {
   );
 }
 
+/// Preferences in which the current Terms are accepted.
+Map<String, Object> get accepted => {'acceptedTerms': termsFingerprint()};
+
+Future<Store> loadStore() async => Store(
+  await SharedPreferences.getInstance(),
+  termsFingerprint: termsFingerprint(),
+);
+
 Future<Store> pumpApp(
   WidgetTester tester, {
-  Map<String, Object> prefs = const {'termsAccepted': true},
+  Map<String, Object>? prefs,
   FakeBle? ble,
   FakeEnv? env,
 }) async {
-  SharedPreferences.setMockInitialValues(prefs);
-  final store = Store(await SharedPreferences.getInstance());
+  SharedPreferences.setMockInitialValues(prefs ?? accepted);
+  final store = await loadStore();
   await tester.pumpWidget(
     LibreBm6App(
       store: store,
