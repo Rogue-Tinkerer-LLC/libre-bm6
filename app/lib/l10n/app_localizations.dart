@@ -637,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBugReport.
   ///
   /// In en, this message translates to:
-  /// **'If you tap Report a bug or Contact support, the app opens the project\'s GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and the Android version, and you can edit or remove them before you submit. GitHub\'s own terms and privacy policy apply there. The app itself still has no network access.'**
+  /// **'If you tap Report a bug or Contact support, the app opens the project\'s GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and build number and the Android version and API level, and you can edit or remove them before you submit. GitHub\'s own terms and privacy policy apply there. The app itself still has no network access.'**
   String get privacyBugReport;
 
   /// No description provided for @privacySourceHeading.
