@@ -1,0 +1,309 @@
+= BM200 Wire Format
+Live voltage is readable: every frame is one AES-128-CBC block with a fixed key and zero IV, and the live-data reply carries voltage as a big-endian uint16 in hundredths of a volt.
+
+== Scope and conventions
+
+This document covers the bytes on the wire. Its priority is reading the live battery voltage. Commands and messages that are not needed for live voltage get a one-line catalogue entry only.
+
+* Byte offsets are 0-based into the *decrypted* frame.
+* The vendor app parses received frames by converting them to an uppercase hex string and slicing characters. Every offset below was converted from character positions to byte offsets (character position / 2). Each live-data offset was derived twice from the parsing code.
+* "Read directly" facts come straight from the code. Anything inferred is marked *Unverified:*.
+* Multi-byte integers are big-endian (most significant byte first) unless stated otherwise.
+
+== GATT endpoints used for data
+
+Connection setup, notification enabling, and ordering belong to the session-lifecycle document. Only the endpoints that carry the frames below are listed here.
+
+[cols="1,2,3"]
+|===
+| Role | UUID | Notes
+
+| Data service | `0000fff0-0000-1000-8000-00805f9b34fb` |
+| App to device (commands) | `0000fff3-0000-1000-8000-00805f9b34fb` | Written with write type "no response".
+| Device to app (replies) | `0000fff4-0000-1000-8000-00805f9b34fb` | Notifications. The app enables notify through the CCCD.
+|===
+
+Firmware-update endpoints exist and are listed in <<ota>> for identification only.
+
+== Framing
+
+=== Plaintext frame
+
+Every plaintext command and reply starts with the same 3-byte header.
+
+[cols="1,1,4"]
+|===
+| Offset | Length | Meaning
+
+| 0 | 1 | Magic `0xD1`
+| 1 | 1 | Magic `0x55`
+| 2 | 1 | Command / message type (see catalogues)
+| 3 | n | Parameters (type-specific)
+|===
+
+There is no length field, no sequence number, and no checksum or CRC in either direction. The app checks for none on receive and adds none on send. Command frames shorter than 16 bytes are zero-padded to 16 bytes before encryption. The padding is plain `0x00` bytes, not PKCS#7.
+
+=== Encryption
+
+Read directly:
+
+[cols="1,3"]
+|===
+| Property | Value
+
+| Algorithm | AES-128
+| Mode | CBC
+| Padding | None at the cipher level. The app zero-pads short frames to 16 bytes itself.
+| Key (hex) | `6c 65 61 67 65 6e 64 ff fe 30 31 30 30 30 30 39`
+| Key (ASCII) | `leagend` + bytes `0xFF 0xFE` + `0100009`
+| IV | 16 bytes of `0x00`
+| Key derivation | None. The key is a constant compiled into the app, the same for every device.
+| Coverage | The whole frame, header included. There is no checksum to order against.
+|===
+
+==== App to device
+
+. Build the plaintext frame.
+. If it is shorter than 16 bytes, append `0x00` until it is 16 bytes.
+. Encrypt with AES-128-CBC, the key above, and a zero IV. A frame of 16 bytes or more is encrypted as a single CBC chain.
+. Write the ciphertext to `FFF3`.
+
+A frame longer than 16 bytes that is not a multiple of 16 makes the vendor cipher fail. Read directly: the app then hands a null value to the platform write. *Unverified:* what the platform does with it; such frames are effectively broken in the vendor app. None of the live-voltage commands are affected.
+
+==== Device to app
+
+. Take the notification value from `FFF4`.
+. If the value is shorter than 32 bytes (length / 16 rounded down is at most 1), decrypt the whole value as one AES-128-CBC message with the zero IV.
+. Otherwise split it into consecutive 16-byte blocks and decrypt *each block independently* with a fresh zero IV. Concatenate the results. Trailing bytes that do not fill a block are discarded.
+
+Because each block restarts with a zero IV, multi-block notifications behave like AES-ECB per block. *Unverified:* whether the device really encrypts its multi-block notifications per block, or the app is simply lenient. Live-data frames are a single block, so this does not matter for live voltage.
+
+A notification whose length is 1 to 15 or 17 to 31 bytes fails decryption in the vendor app and is silently dropped.
+
+=== Fragmentation and reassembly
+
+Single-frame messages (version, live data, acknowledgements) fit in one 16-byte block and need no reassembly.
+
+Bulk transfers (history, crank waveform) span many notifications. The app concatenates the decrypted hex text until it sees an end marker. These are summarized in <<other-msgs>>.
+
+=== Worked example
+
+Computed with the Python `cryptography` library from the key and IV above.
+
+[cols="1,2,2"]
+|===
+| Command | Plaintext (16 bytes, hex) | Ciphertext written to `FFF3` (hex)
+
+| Start live data | `d1 55 07 00 00 00 00 00 00 00 00 00 00 00 00 00` | `69 7e a0 b5 d5 4c f0 24 e7 94 77 23 55 55 41 14`
+| Read version | `d1 55 01 00 00 00 00 00 00 00 00 00 00 00 00 00` | `1a d6 f0 5e 49 90 ab 24 b8 4d 57 df 81 d8 76 6e`
+| Authorize (genuine) | `d1 55 02 00 00 00 00 00 00 00 00 00 00 00 00 00` | `9c b1 80 29 77 4c 5c fc 57 c9 f1 14 d4 0d b4 e8`
+| Read crank test | `d1 55 03 00 00 00 00 00 00 00 00 00 00 00 00 00` | `d3 90 bf 65 d7 d8 57 43 6e 94 71 04 2f 85 45 6f`
+|===
+
+Live-data round-trip test vector. The plaintext is invented to exercise the layout in <<live-data>> and is not a captured frame. It decodes as +25 °C, status 0, SOC 0 %, 13.75 V, 3 rapid accelerations, 1 rapid deceleration.
+
+* Plaintext: `d1 55 07 00 19 00 00 05 5f 00 03 00 01 00 00 00`
+* Ciphertext: `60 5a 04 2a d4 97 01 9a 91 af 63 7f c8 74 c9 d1`
+
+Real-device vector (2026-11-14), decrypted from a captured notification. It decodes as +14 °C, status 2, SOC 100 %, 14.85 V, counters 0, and byte 13 = `0x02`. The ciphertext was not recorded.
+
+* Plaintext: `d1 55 07 00 0E 02 64 05 CD 00 00 00 00 02 00 00`
+
+== Live voltage: minimum path
+
+=== What the vendor app sends
+
+Read directly. After notifications are enabled on `FFF4`, the vendor app runs this chain. Each step waits for the previous reply.
+
+. Send *Read version* (`D1 55 01`). Reply type `0x01`.
+. Send *Authorize* (`D1 55 02 00`). Reply type `0x02`, byte 3 = `0x00` means accepted.
+. Send battery-type configuration (`D1 55 08 ..`). Reply type `0x08`. Firmware below 1.7 does not wait for this reply.
+. A short history probe and then a history download (`D1 55 05 ..`). Replies type `0x05` plus bulk data. A reply count of 0 skips the bulk data and the rest of the history step.
+. Send *Read crank test* (`D1 55 03`). Reply type `0x03`. If byte 3 is not `0xFF`, bulk data follows until both `FFFFFE` and `FFFEFE` have been seen.
+. When the crank-test exchange is complete, send *Start live data* (`D1 55 07`). The device then sends live-data frames (type `0x07`). This is the only place the app sends `D1 55 07`, and it always comes directly after `D1 55 03`.
+
+The vendor app normally decides between `D1 55 02 00` and `D1 55 02 11` by asking the vendor's server whether the device MAC is genuine. If the server rejects the MAC, the app sends `0x11`, which looks like a "counterfeit device" flag. With no network the app always sends `0x00`. A replacement app should always send `D1 55 02 00` and never `0x11`.
+
+=== Recommended minimum
+
+Settled on one unit (2026-11-14): steps 1 and 4 alone produced live-data frames, so steps 2 and 3 are not required. The code always reaches *Start live data* through the chain above. The list below keeps steps 2 and 3 as a fallback for units that behave differently:
+
+. Enable notifications on `FFF4`.
+. Send `D1 55 01` and wait for the type `0x01` reply.
+. Send `D1 55 02 00` and wait for the type `0x02` reply. Continue only if byte 3 is `0x00`; the vendor app stops its chain otherwise.
+. Send `D1 55 07`.
+
+If no type `0x07` frames arrive, insert `D1 55 03` before `D1 55 07` and consume its reply (and any bulk data) first. If that also fails, run the full vendor chain above. The session-lifecycle document gives the same test order.
+
+The vendor app waits 50 ms before each write, then waits up to ~400 ms for any notification. If the write fails or nothing arrives, it resends after 200 ms, up to 3 times, then disconnects.
+
+Observed on the device (2026-11-14): one live-data frame per second, and no resend of `D1 55 07` was needed over 30 s. *Unverified:* whether the stream stops after a longer period without a new request. The app sends it once per chain and ignores frames that arrive less than 500 ms after the previous one. It also runs later history syncs without resending `D1 55 07`, so it expects the stream to continue.
+
+[[live-data]]
+=== Live-data reply (type `0x07`)
+
+Recognized by bytes 0 to 2 = `D1 55 07`.
+
+If byte 3 is `0xFF`, the frame is an acknowledgement of the start command only. It carries no data and the app ignores it. Check for this *before* parsing the table below, because byte 3 doubles as the temperature sign.
+
+[cols="1,1,2,1,1,4"]
+|===
+| Offset | Len | Type | Scale | Unit | Meaning
+
+| 0 | 3 | bytes | | | Header `D1 55 07`
+| 3 | 1 | uint8 | | | Temperature sign. `0x01` = negative. Any other value = positive. (`0xFF` = acknowledgement frame, see above.)
+| 4 | 1 | uint8 | 1 | °C | Temperature magnitude. Apply the sign from byte 3.
+| 5 | 1 | uint8 | | | Battery status code (see <<status-enum>>)
+| 6 | 1 | uint8 | 1 | % | State of charge
+| *7* | *2* | *uint16 BE* | *÷ 100* | *V* | *Battery voltage* (for example `0x055F` = 1375 = 13.75 V)
+| 9 | 2 | uint16 BE | 1 | count | Rapid-acceleration event count
+| 11 | 2 | uint16 BE | 1 | count | Rapid-deceleration event count
+| 13 | 3 | | | | Unused by the app. Observed as a constant `0x02` at byte 13 in every frame on the device (2026-11-14); see the note below.
+|===
+
+Observed on the device (2026-11-14): byte 13 was a constant `0x02` in every data frame, and bytes 14 and 15 were `0x00`. The meaning is unknown, and the app does not read it.
+
+Character-to-byte conversion for this table: characters 6-7 → byte 3, 8-9 → byte 4, 10-11 → byte 5, 12-13 → byte 6, 14-17 → bytes 7-8, 18-21 → bytes 9-10, 22-25 → bytes 11-12.
+
+Temperature is a sign-magnitude value, not two's complement. For example, byte 3 = `0x01` and byte 4 = `0x05` is -5 °C. The app stores it in Celsius and converts to Fahrenheit only for display.
+
+The app stamps each frame with the phone's clock. The frame carries no timestamp.
+
+[[status-enum]]
+=== Battery status code (live data byte 5)
+
+Meanings are paraphrased from how the app presents each value.
+
+[cols="1,4"]
+|===
+| Value | Meaning
+
+| `0x00` | Normal, battery good.
+| `0x01` | Low charge.
+| `0x02` | Charging. The app also treats a change from `0x02` to any other value as an engine stop and starts a trip/history sync.
+| other | Presented the same as `0x01`. *Unverified:* whether the device sends other values.
+|===
+
+The advertisement block uses the same code space in its byte 9 (see <<adv-block>>).
+
+[[adv-block]]
+=== Advertisement block (no connection)
+
+The device also broadcasts an encrypted 16-byte block in its manufacturer-specific advertisement data. How to locate it is in the session-lifecycle document. It is decrypted as one AES-128 block with the same key and a zero IV.
+
+[cols="1,1,2,1,1,4"]
+|===
+| Offset | Len | Type | Scale | Unit | Meaning
+
+| 0 | 6 | bytes | | | Device MAC, in display order
+| *6* | *2* | *uint16 BE* | *÷ 100* | *V* | *Battery voltage*
+| 8 | 1 | uint8 | 1 | % | State of charge
+| 9 | 1 | uint8 | | | Battery status (see <<status-enum>>)
+| 10 | 1 | | | | Not read by the app
+| 11 | 2 | uint16 BE | ÷ 100 | V | Last cranking (engine-start) voltage. Not the present voltage.
+| 13 | 1 | uint8 | | | Cranking-test status. `0x02` makes the app raise a low-cranking-voltage alarm.
+| 14 | 2 | | | | Not read by the app
+|===
+
+Character-to-byte conversion for this table: characters 0-11 → bytes 0-5, 12-15 → bytes 6-7, 16-17 → byte 8, 18-19 → byte 9, 22-25 → bytes 11-12, 26-27 → byte 13.
+
+Advertisement test vector. The plaintext is invented, not captured. It decodes as MAC `A1:B2:C3:D4:E5:F6`, 13.50 V, 80 %, status 0.
+
+* Plaintext: `a1 b2 c3 d4 e5 f6 05 46 50 00 00 00 00 00 00 00`
+* Ciphertext (the 16 bytes after the `0x11 0xFF` AD header): `c0 6a 9d 97 f3 fd bb 15 9b 64 47 f1 a8 5e a8 5e`
+
+*Unverified:* that bytes 6-7 equal the connected live-data voltage at the same moment. The field is live and the refresh interval is confirmed by experiment (2026-11-14); see the session-lifecycle document. On 2026-11-14 the ranges matched, and the monitor read about 0.08 to 0.10 V low against a multimeter on that unit.
+
+== Command catalogue (app to device)
+
+All commands are zero-padded to 16 bytes and encrypted as described above. Only the first three rows matter for live voltage.
+
+[cols="2,3,4"]
+|===
+| Name | Plaintext bytes | Purpose
+
+| Read version | `D1 55 01` | First command after connect. Reply type `0x01`.
+| Authorize, genuine | `D1 55 02 00` | Tells the device it may operate normally. Reply type `0x02`.
+| Start live data | `D1 55 07` | Starts live-data frames. Reply type `0x07`.
+| Authorize, counterfeit | `D1 55 02 11` | Sent only when the vendor server rejects the MAC. Do not send.
+| Read crank test | `D1 55 03` | Requests the last engine-start (cranking) test. Reply type `0x03`.
+| Charging test step 1 | `D1 55 04 01` | Charging-system test, step 1. Reply `D1 55 04 01`.
+| Charging test step 2 | `D1 55 04 02` | Charging-system test, step 2. Reply `D1 55 04 02`.
+| Charging test step 3 | `D1 55 04 03` | Charging-system test, step 3. Reply `D1 55 04 03` with results.
+| Read history | `D1 55 05 00 00 00 NN NN NN` | Requests the last N two-minute history records. N is a 24-bit big-endian count in bytes 6 to 8. Reply type `0x05` then bulk data.
+| Stop history | `D1 55 06` | Defined in the app, reply type `0x06` is logged. Read directly: nothing in the app sends it.
+| Set battery type | `D1 55 08 TT` | Sets the battery type code TT (`0x01` to `0x07`). Reply type `0x08`.
+| Set battery type with custom curve | `D1 55 08 TT 01 ..` and `D1 55 08 TT 02 ..` | Two frames for types `0x03`, `0x04`, `0x06`, `0x07`, carrying a user voltage curve as hex text. Not needed for voltage.
+| Firmware-update identify | `0x00` then `0x01` (single raw byte, unencrypted) | Written to the update characteristic, see <<ota>>.
+|===
+
+[[other-msgs]]
+== Reply catalogue (device to app)
+
+Recognized by the first bytes of the decrypted frame. Only type `0x07` is detailed, in <<live-data>>.
+
+[cols="2,4"]
+|===
+| ID bytes | Meaning
+
+| `D1 55 01` | Version. Byte 3 = major, byte 4 = minor; the app computes major + minor / 10 (for example 1.7). Byte 5 = `0x00` makes the app send *Authorize, genuine* immediately.
+| `D1 55 02` | Authorize result. Byte 3 = `0x00` means accepted.
+| `D1 55 03` | Crank test header. Byte 3 = `0xFF` means no test stored. Otherwise a waveform follows in later notifications, ending with markers `FFFFFE` and `FFFEFE`.
+| `D1 55 04 01` / `D1 55 04 02` | Charging test step acknowledgements.
+| `D1 55 04 03` | Charging test result: status, no-load voltage, loaded voltage, ripple.
+| `D1 55 05` | History header. Bytes 3 to 4 = record count (uint16 BE). Bulk records follow, ending with `FFFEFE`. A block containing `FEFEFE` is an empty filler and is dropped.
+| `D1 55 06` | Stop-history acknowledgement.
+| `D1 55 07 FF` | Live-data start acknowledgement.
+| `D1 55 07` | Live data, see <<live-data>>.
+| `D1 55 08` | Battery-type write result.
+|===
+
+== Other hardware capabilities
+
+These are all the measurements and features the device exposes over BLE, based on every frame the app parses or sends. "Device" means the value arrives in a frame. "App" means the vendor app computes it.
+
+* *Current or shunt data:* none. No frame carries current, and the app never reads a current value.
+* *Temperature:* device. Whole °C. Sign-magnitude in live data. In history records the app reads it as an unsigned byte with no sign handling.
+* *State of charge:* device. Percentage in live data and in each history record. *Unverified:* whether the device's estimate depends on the configured battery type.
+* *Battery status:* device. OK, low, or charging code in live data.
+* *Rapid acceleration and deceleration counts:* device. Two counters in live data, also attached to engine-stop history events. *Unverified:* the sensor behind them.
+* *On-device history:* device. One record every 2 minutes with voltage, SOC, temperature, and engine-start/engine-stop event flags. Records carry no timestamp; the app derives each time from the phone clock and the record's position. Depth is up to 22,320 or 51,840 records depending on variant.
+* *Trips:* app. The app builds trips from the history start/stop events. Distance and fuel cost come from the phone's GPS and user settings, not the device.
+* *Engine-start (cranking) test:* device. Status code (byte 3), cranking voltage (bytes 4-5, ÷ 100), duration (bytes 6-7), age of the test (bytes 8-9, in 2-minute units), and a voltage waveform of 12-bit samples (÷ 100) between the `FFFFFE` and `FFFEFE` markers. The last cranking voltage and status are also in the advertisement block.
+* *Charging-system test:* device. Three app-driven steps; the result carries a status code, no-load voltage, loaded voltage, and ripple. The pass/fail wording is app logic.
+* *Firmware version:* device. Major and minor numbers in the version reply.
+* *Battery type setting:* device setting, written by the app. Type codes `0x01` to `0x07`, optionally with a user voltage curve.
+* *Authorization flag:* device setting. Genuine (`0x00`) or counterfeit (`0x11`).
+* *Firmware update:* device feature over the separate update service.
+* *Alarms, thresholds, and voltage health verdicts:* app. No command sets an alarm or threshold on the device.
+
+== Device variants
+
+Read directly. The app distinguishes two hardware variants by which firmware-update service is present.
+
+* Variant with service `f000ffc0-0451-4000-b000-000000000000`: older firmware-update scheme. After authorization the app writes the identify bytes in <<ota>>.
+* Variant with service `0000fee0-0000-1000-8000-00805f9b34fb`: newer scheme. The app requests an MTU of 247 after the version reply. History requests may ask for up to 51,840 records instead of 22,320.
+
+The app also branches on the version reply. Firmware below 1.7 gets the plain `D1 55 08 01` or `D1 55 08 02` battery-type command. Neither branch changes the live-data layout.
+
+[[ota]]
+== Firmware update (identification only)
+
+* Older variant: service `f000ffc0-0451-4000-b000-000000000000`, characteristics `f000ffc1-...` (notify and write, receives the single bytes `0x00` and `0x01` unencrypted) and `f000ffc2-...` (write).
+* Newer variant: service `0000fee0-0000-1000-8000-00805f9b34fb`, characteristic `0000fee1-0000-1000-8000-00805f9b34fb` (notify, read, and write).
+
+Firmware-update frames are not encrypted with the AES key above.
+
+== Unverified items
+
+* Settled on one unit (2026-11-14): *Start live data* works without the version, authorize, and crank-test steps.
+* Settled on one unit (2026-11-14): live-data frames repeat at one per second, and `D1 55 07` need not be resent over 30 s. Unverified: whether the stream stops after a longer period without a new request.
+* Live status values other than `0x00`, `0x01`, and `0x02`.
+* Whether multi-block notifications are encrypted per block by the device.
+* What the device does after receiving *Authorize, counterfeit* (`D1 55 02 11`).
+* Whether advertisement bytes 6-7 match the live-data voltage at the same moment. The field is live and the refresh interval was measured, both confirmed by experiment (2026-11-14). The ranges matched that day, and the monitor read about 0.08 to 0.10 V low against an independent multimeter on that unit.
+* Advertisement byte 10, which the app does not read.
+
+== License
+
+This document is dedicated to the public domain under the CC0 1.0 Universal Public Domain Dedication. See the `LICENSE` file in this directory or https://creativecommons.org/publicdomain/zero/1.0/ for the full text.

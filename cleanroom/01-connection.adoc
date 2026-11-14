@@ -1,0 +1,415 @@
+= BM200 Connection and Session Lifecycle
+Reading live battery voltage needs only BLE, one fixed AES-128 key, and a short command chain; no cloud or account is involved.
+
+== Scope and conventions
+
+This document covers discovery, GATT layout, transport encryption, and the ordered sequence from connect to the first live-data notification. The payload field layout belongs to the codec spec; it appears here only where the connection depends on it or where it decides feasibility.
+
+* "Read:" or unmarked statements were read directly in the vendor app.
+* "Unverified:" marks an inference or an open point.
+* Byte positions are zero-based offsets into the *decrypted* 16-byte plaintext block.
+* Hex is written `0x..`. Multi-byte numbers in plaintext are big-endian (the app parses them as hex substrings).
+
+== Feasibility summary
+
+* A fully offline client is possible. Every value the device needs is a constant in the app.
+* The only cloud interaction in the connect path is an optional genuine-device lookup by MAC. Offline, the app skips it and proceeds as if the device were genuine (see <<cloud>>).
+* Battery voltage is available two ways:
+** Without connecting, from the encrypted manufacturer-specific advertisement data.
+** After connecting, from the live-data notification.
+* Discovery needs no QR code. The QR code, when used, is only the device MAC.
+
+== Supported device names
+
+The app accepts a device only when its name equals one of these strings, compared case-insensitively:
+
+[cols="1,2"]
+|===
+|Name |Notes
+
+|`BM6`
+|Used for the BM200 / BM6 family.
+
+|`Battery Guard`
+|Accepted identically. No different handling found.
+|===
+
+The name is taken from the OS-reported device name. If that is null, the app parses the raw advertisement for AD type `0x09` (Complete Local Name, UTF-8). AD type `0x08` (Shortened Local Name) is not parsed.
+
+There are no name prefixes and no per-model variants at discovery time. The firmware variant is distinguished after service discovery (see <<variants>>).
+
+== Discovery
+
+=== Active scan (foreground, connect path)
+
+* Scan filter: service UUID `0000fff0-0000-1000-8000-00805f9b34fb` only. No name filter in the OS filter; the name check above is applied in software.
+* Scan mode: low latency (`SCAN_MODE_LOW_LATENCY`, value 2). Callback type: all matches (value 1).
+* The scan starts 1 s after it is requested. It runs in 12 s windows. At the end of each window the app stops and immediately restarts the scan. The scan is (re)started on disconnects while fewer devices are connected than the app manages, and stopped on specific events (for example, when the only managed battery has connected).
+* RSSI is not used for filtering, ranking, or connect decisions. Read: no RSSI access in the scan handlers.
+* Required Android permissions checked before scanning: Bluetooth on, `ACCESS_FINE_LOCATION`, and on Android 12+ `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`. Location is an Android requirement of the vendor app's scan path, not a device requirement. Unverified: whether a new app can scan with `neverForLocation` on Android 12+; the device side does not care.
+
+=== Connect decision
+
+On a scan result the app connects when all of these hold:
+
+. The name is `BM6` or `Battery Guard`.
+. The MAC is in the app's local list of user-added batteries (a local SQLite table, not a server call).
+. The MAC is in one of the four active "slots" (the app manages at most four batteries at once).
+. No connection to that MAC is already in progress or established.
+
+The app also connects directly to known MACs without waiting for a scan result when Bluetooth turns on or the device list changes.
+
+=== Identity: MAC and serial
+
+* The serial shown to the user is the Bluetooth MAC address with colons removed, upper-case hex, 12 characters (for example `A1B2C3D4E5F6`).
+* Internally the app stores the colon form (`A1:B2:C3:D4:E5:F6`).
+* The decrypted advertisement block repeats the MAC in bytes 0..5 (see below). The add-device screen uses this to confirm the advertisement belongs to that device. The connect-path and background alarm parsers do not check it.
+
+[[adv]]
+=== Manufacturer-specific advertisement data
+
+Read: the app converts the whole raw scan record to an upper-case hex string and searches for the first occurrence of the substring `11FF`. It then takes the next 32 hex characters (16 bytes) and decrypts them with the transport key (see <<crypto>>).
+
+In AD-structure terms this is an AD record with length `0x11` and type `0xFF`, whose 16 data bytes are one AES block. No company identifier is parsed separately; the 16 bytes are decrypted as a whole, including the two bytes that the Bluetooth specification would treat as a company identifier.
+
+A new client should walk the AD structures byte-aligned and take the first one with length `0x11` and type `0xFF`. This matches the app whenever the text `11FF` does not occur earlier in the record at an odd nibble offset or inside another structure's data; in those cases the app's text search is simply wrong.
+
+Platform note: many BLE stacks (for example, BlueZ and libraries built on it) do not expose the raw record. They report manufacturer data as a company identifier plus the remaining bytes. Rebuild the 16-byte block as the company identifier in over-the-air order (little-endian, low byte first) followed by the 14 remaining bytes, then decrypt. Because the whole block is ciphertext, the reported company identifier is not a real one. It changes whenever the plaintext changes, so do not filter on it.
+
+The connect-path scan and the background receiver skip records that look like an iBeacon before decrypting: they check whether, for any `i` in 2..5, raw byte `i+2` is `0x02` and raw byte `i+3` is `0x15`. The add-device screen does not apply this check. This implies the device sometimes advertises an iBeacon frame. Both frame types appeared in one 40 s scan (2026-11-14). Unverified: when and why the device switches between frames.
+
+Decrypted advertisement fields, as read by the add-device screen and by the app's background alarm logic:
+
+[cols="1,1,3"]
+|===
+|Bytes |Width |Meaning as used by the app
+
+|0..5
+|6
+|Device MAC, in display order. The add-device screen compares it to the scanned MAC (colons removed) and shows the voltage only on a match. The alarm logic does not check it.
+
+|6..7
+|2
+|*Battery voltage*, unsigned big-endian, divide by 100 for volts. This is the value the add-device list shows as the device's voltage.
+
+|8
+|1
+|State of charge in percent. Compared against the app's low-charge alarm thresholds (60 % and 80 % by default).
+
+|9
+|1
+|Battery status. Same code space as live-data byte 5: `0` normal, `1` low, `2` charging.
+
+|10
+|1
+|Not read by the app.
+
+|11..12
+|2
+|Cranking (engine-start) voltage, unsigned big-endian, divide by 100. The app's alarm text for this value calls it the cranking voltage. Used only for a low-cranking-voltage alarm when byte 13 is 2 and the value is 6.0 to 18.0 V.
+
+|13
+|1
+|Cranking-test status. Value 2 triggers the low-cranking-voltage alarm above.
+
+|14..15
+|2
+|Not read by the app.
+|===
+
+Bytes 6..7 are the present battery voltage. Read: the add-device screen displays bytes 6..7 as the voltage, and the app labels bytes 11..12 as a cranking voltage, which is a stored engine-start result rather than a live reading. Unverified: that bytes 6..7 equal the connected live-data voltage at the same moment. On 2026-11-14 the two ranges matched, and the monitor read about 0.08 to 0.10 V low against a multimeter (see <<experiment>>).
+
+=== Background scan
+
+The app also registers a low-power background scan (`SCAN_MODE_LOW_POWER`, delivered to a broadcast receiver) with two filters: name `BM6` plus service `0xFFF0`, and name `Battery Guard` plus service `0xFFF0`. Its main job is to restart the app's service. As a fallback, the receiver runs a 5 s scan and decrypts the advertisement for its alarms, without connecting. A new client can ignore it.
+
+=== QR code
+
+Adding a device needs no QR code. The add screen lists nearby devices from the scan, and also accepts manual entry. The optional QR scan accepts only a string matching exactly 12 hex digits, which is the MAC without colons. Nothing else is encoded in it.
+
+[[cloud]]
+== Cloud and account dependencies
+
+Nothing fetched from a server changes how the app talks to the device over BLE. The key is a compile-time constant, there is no session key exchange, no activation, no bonding token, and no server-supplied command.
+
+The one server touch point inside the connect chain is a genuine-device check, described here so a new client can reproduce the offline branch:
+
+. After the device returns the version response, the app looks at plaintext byte 5 of that response.
+. If byte 5 is `0x00`, the app immediately sends the *genuine-flag* command `0xD1 0x55 0x02 0x00`.
+. Then, if the phone has network, the app asks the vendor's server whether the MAC is genuine. The request details are irrelevant to a new client and are omitted.
+.. Server code 0 and byte 5 was not `0x00`: the app sends `0xD1 0x55 0x02 0x00`.
+.. Server code non-zero: the app sends `0xD1 0x55 0x02 0x11` and shows a counterfeit-device notification. If byte 5 was `0x00`, this follows the `0x00` flag already sent.
+.. Network error and byte 5 was not `0x00`: the app sends `0xD1 0x55 0x02 0x00`.
+. If the phone has no network and byte 5 was not `0x00`, the app sends `0xD1 0x55 0x02 0x00`.
+
+Every offline path therefore sends `0xD1 0x55 0x02 0x00`. A new client should always send that value.
+
+Other server traffic (uploads of readings, trips, history, firmware version checks, device list sync, location) happens outside the BLE path and is not needed.
+
+[[gatt]]
+== GATT layout
+
+[cols="2,3,2,3"]
+|===
+|Role |UUID |Properties relied on |Notes
+
+|Data service
+|`0000fff0-0000-1000-8000-00805f9b34fb`
+|
+|Present on all variants. Also the scan filter UUID.
+
+|Command (write)
+|`0000fff3-0000-1000-8000-00805f9b34fb`
+|Write without response
+|App sets write type to `WRITE_TYPE_NO_RESPONSE`. Every write is one encrypted 16-byte block. Connected test (2026-11-14): the GATT declaration reports only `write`, yet a write without response was accepted and acted on.
+
+|Data (notify)
+|`0000fff4-0000-1000-8000-00805f9b34fb`
+|Notify
+|All responses and live data arrive here, encrypted.
+
+|OTA service, variant A
+|`f000ffc0-0451-4000-b000-000000000000`
+|
+|Firmware update only. See <<ota>>.
+
+|OTA image identify, variant A
+|`f000ffc1-0451-4000-b000-000000000000`
+|Notify, write without response
+|Notifications enabled by the app during setup. Plaintext (unencrypted).
+
+|OTA image block, variant A
+|`f000ffc2-0451-4000-b000-000000000000`
+|Write without response
+|Firmware update only.
+
+|OTA service, variant B
+|`0000fee0-0000-1000-8000-00805f9b34fb`
+|
+|Present instead of variant A on newer firmware.
+
+|OTA data, variant B
+|`0000fee1-0000-1000-8000-00805f9b34fb`
+|Notify, read, write without response
+|Firmware update only.
+|===
+
+Other GATT parameters:
+
+* CCCD: the app calls set-notification on the characteristic, then writes `0x01 0x00` (`ENABLE_NOTIFICATION_VALUE`) to *every* descriptor of that characteristic. It does not filter for UUID `0x2902` and does not wait for the descriptor-write callback.
+* MTU: not requested in the normal data path. The default 23-byte ATT MTU is enough because each packet is 16 bytes. The app requests MTU 247 only on variant B, right after the version response, for later OTA use.
+* `autoConnect`: false. Transport: default (the 3-argument `connectGatt`, so `TRANSPORT_AUTO`).
+* Connection priority: not set. PHY: not set.
+* Bonding and pairing: none. The app never creates a bond and needs no PIN.
+
+[[variants]]
+=== Firmware variants
+
+After service discovery the app checks for the OTA service:
+
+* Variant A: `f000ffc0-...` present. Older firmware. The app enables notify on `f000ffc1-...` and later sends two OTA identify probes (see step 15 below).
+* Variant B: `f000ffc0-...` absent and `0000fee0-...` present. Newer firmware. The app enables notify on `0000fee1-...` and requests MTU 247 after the version response.
+
+Both variants use the same `0xFFF0` data path. A voltage-only client can ignore the OTA service entirely. Confirmed by experiment (2026-11-14) on a variant B unit: skipping the notify enable on `0000fee1-...` had no effect on live data.
+
+[[crypto]]
+== Transport encryption
+
+All traffic on `0xFFF3` and `0xFFF4` is encrypted. OTA characteristics are not.
+
+[cols="1,3"]
+|===
+|Parameter |Value
+
+|Algorithm
+|AES-128
+
+|Mode
+|CBC with an all-zero IV. Every frame in practice is one 16-byte block, and CBC with a zero IV over one block is identical to AES-ECB. On receive, longer values are split and each block is decrypted with a fresh zero IV (see below).
+
+|Padding
+|None. Plaintext shorter than 16 bytes is right-padded with `0x00` to 16 bytes before encryption.
+
+|Key (hex)
+|`6C 65 61 67 65 6E 64 FF FE 30 31 30 30 30 30 39`
+
+|Key (text)
+|`leagend` + bytes `0xFF 0xFE` + `0100009`
+
+|IV
+|16 bytes of `0x00`
+
+|Key derivation
+|None. The key is a constant, identical for every device.
+|===
+
+Direction and framing:
+
+* Phone to device (write on `0xFFF3`): encrypt the command (3 to 9 bytes, zero-padded to 16) as one block, and write the 16-byte ciphertext.
+* Device to phone (notify on `0xFFF4`): if the value is shorter than 32 bytes, decrypt it whole as one CBC message. If it is 32 bytes or longer, split into 16-byte chunks and decrypt each chunk independently with a zero IV, then concatenate. Trailing bytes beyond a multiple of 16 are dropped.
+* A notification shorter than 32 bytes whose length is not exactly 16 (or 0) makes the app's decrypt throw, and the packet is discarded.
+* Advertisement manufacturer data uses the same key and the same single-block decrypt.
+
+== Connect to first live data
+
+All commands below are plaintext before encryption. Every command begins `0xD1 0x55`, followed by a command byte. Every response begins with the same three bytes, so the app routes responses by their first three (or four) plaintext bytes.
+
+[cols="2,3"]
+|===
+|Name used in this document |Plaintext bytes
+
+|Version request
+|`0xD1 0x55 0x01`
+
+|Genuine flag (codec spec: Authorize)
+|`0xD1 0x55 0x02 0x00` (counterfeit marker: `0xD1 0x55 0x02 0x11`)
+
+|Crank-test request (codec spec: Read crank test)
+|`0xD1 0x55 0x03` (reads the last stored engine-start test; see the codec spec)
+
+|History request
+|`0xD1 0x55 0x05 0x00 0x00 0x00` + 3-byte count
+
+|Battery-type set
+|`0xD1 0x55 0x08` + 1-byte type
+
+|Live-data request (codec spec: Start live data)
+|`0xD1 0x55 0x07`
+|===
+
+=== Per-command delivery rules
+
+Read, and these apply to every command in the chain:
+
+* Writes are serialized on a worker thread. Each write sleeps 50 ms before writing.
+* After a successful write the app waits up to ~400 ms (40 polls of 10 ms) for *any* notification on `0xFFF4`.
+* If the write call fails or no notification arrives in that window, the app resends the same command after a further 200 ms. After 3 resends it disconnects.
+
+=== Sequence
+
+. Call `connectGatt(autoConnect=false)`. Start an 8000 ms connect timeout.
+. On "connected" (the app checks only the new state, not the status code), cancel the timeout and wait 200 ms.
+. Call `discoverServices()`. If it returns false, disconnect.
+. On services discovered with status 0, wait 200 ms. Any other status: disconnect.
+. Detect the variant (see <<variants>>) and enable notifications on the OTA notify characteristic. Optional for a voltage-only client.
+. Wait 100 ms.
+. Get service `0xFFF0`. Enable notifications on `0xFFF4` (CCCD write `0x01 0x00`). Set `0xFFF3` to write-without-response.
+. Mark the session connected. The app treats this point as connection success; no handshake or authentication follows.
+. Send the *version request*.
+. Receive the version response (`0xD1 0x55 0x01 ...`). Byte 3 is the major version and byte 4 the minor version (version = byte3 + byte4 / 10). Byte 5 drives the genuine check.
+. Variant B only: request MTU 247, then sleep 300 ms.
+. Send the *genuine flag* per <<cloud>>. Offline this is always `0xD1 0x55 0x02 0x00`.
+. Receive `0xD1 0x55 0x02 ...`. The app continues only when byte 3 is `0x00`. Otherwise it stops the chain here and never requests live data. Nothing else in the response is checked.
+. Firmware 1.7 or newer: send *battery-type set* with the user's battery type. Older firmware: send `0xD1 0x55 0x08 0x01` or `0xD1 0x55 0x08 0x02` without waiting for a notification.
+. Variant A only, triggered by any genuine-flag response: 2000 ms and 2500 ms later, write single raw (unencrypted) bytes `0x00` then `0x01` to `f000ffc1-...`. These are OTA image-identify probes. The answer is a firmware image descriptor on `f000ffc1-...`. Skip in a voltage-only client.
+. History sync, out of scope here. Firmware 1.7 or newer starts it on the battery-type response (`0xD1 0x55 0x08 ...`). Older firmware starts it as soon as the battery-type write succeeds and ignores the response. It is a 10-point history request, then a full history request. Each is answered by a count response and, when the count is not 0, a multi-packet stream terminated by the plaintext pattern `FF FE FE`.
+. When history sync finishes, or a count is 0, send the *crank-test request*.
+. Receive `0xD1 0x55 0x03 ...`. If byte 3 is `0xFF`, no crank test is stored. Otherwise the app collects packets until it has seen both `FF FF FE` and `FF FE FE`.
+. Once the crank-test exchange is complete (immediately on `0xFF`, otherwise after both markers), send the *live-data request* `0xD1 0x55 0x07`. Read: this is the only place the app sends it.
+. Receive `0xD1 0x55 0x07 0xFF ...`, which acknowledges live data.
+. Receive live-data notifications `0xD1 0x55 0x07 ...`. The voltage is bytes 7..8, unsigned big-endian, divided by 100. The full layout is in the codec spec.
+
+Settled on one unit by experiment (2026-11-14): the device answers the *live-data request* without steps 9 to 18, so item 1 below is enough. The app always runs the whole chain, and nothing in the app shows the device enforcing that order. The remaining items are a fallback for units that behave differently:
+
+. Connect, enable notify on `0xFFF4`, send the *live-data request* directly.
+. If no `0xD1 0x55 0x07` arrives, add the *version request* and *genuine flag* first.
+. If still nothing, add the *crank-test request* before the *live-data request*, consuming its response as in step 18.
+. If still nothing, replicate the full chain including battery-type set and history sync.
+
+== Steady state
+
+* Live data is pushed by the device as notifications after one *live-data request*. The app does not poll and sends no keep-alive in the data path. Read: the live-data request is sent from exactly one place, at the end of the chain.
+* The app drops live-data packets that arrive within 500 ms of the previous one. Its own log text ties this to duplicate callbacks on one phone OS, so it says nothing reliable about the device's rate. Confirmed by experiment (2026-11-14): one frame per second (mean interval 1.001 s over 30 frames).
+* The app expects the stream to keep running across a later history sync. When the status changes from charging to anything else, and when the user syncs history by hand, the app runs a history sync and does not send the *live-data request* again. Live-data frames that arrive during a history transfer are routed to the live-data parser, not the history buffer.
+* Confirmed by experiment (2026-11-14): no re-request was needed over 30 s. Unverified: whether the device stops streaming after a longer period without a new request. The app shows no re-request timer.
+
+== Disconnect and reconnect
+
+* Connect timeout: 8000 ms. On timeout the app disconnects, then 1000 ms later runs its own "disconnected" handler.
+* Any connection-state callback whose new state is not "connected" closes the GATT object and clears the session, regardless of status code.
+* Reconnect is driven by scanning: while fewer devices are connected than the app manages, the 12 s scan cycle keeps running and a fresh scan result triggers a new connection.
+* When Bluetooth turns off the app disconnects all sessions; when it turns on it restarts scanning and connects directly to known MACs.
+
+== Multiple devices and background
+
+* At most four batteries, one independent GATT session each, keyed by MAC. Each session has its own write path; there is no global GATT queue across devices.
+* The vendor app runs a foreground service to keep sessions alive, plus the low-power background scan. Neither is required by the device.
+
+[[ota]]
+== Firmware update (avoid)
+
+* Variant A uses service `f000ffc0-0451-4000-b000-000000000000` with `f000ffc1-...` (identify, notify) and `f000ffc2-...` (block write).
+* Variant B uses service `0000fee0-0000-1000-8000-00805f9b34fb` with `0000fee1-...` (read, notify, write).
+* OTA starts only from an explicit user action on the upgrade screen, after a server version check. A new client avoids it entirely by never writing to these characteristics, except that the variant A identify probes (`0x00`, `0x01` to `f000ffc1-...`) are read-only queries and can also be skipped.
+
+== Minimal client for live voltage
+
+Two independent paths exist. Build (a) first, because it needs no connection.
+
+=== (a) Passive, from advertisements
+
+. Scan, filtering on service `0000fff0-0000-1000-8000-00805f9b34fb`. Optionally also require the name `BM6` or `Battery Guard`, compared case-insensitively. Confirmed by code.
+. Skip a record that matches the iBeacon test in <<adv>> (raw bytes `0x02 0x15` at any of the offset pairs 4..5 through 7..8). Confirmed by code.
+. Walk the AD structures and take the first one with length `0x11` and type `0xFF`. Take its 16 data bytes, rebuilding them from company identifier plus payload if the stack splits them. Confirmed by code; the rebuild is a platform necessity, not app behavior.
+. Decrypt the 16 bytes as one AES-128 block (ECB, or CBC with a zero IV) with the key in <<crypto>>. Confirmed by code.
+. Optionally check that plaintext bytes 0..5 equal the device MAC. Confirmed by code.
+. Voltage = unsigned big-endian bytes 6..7, divided by 100. Confirmed by code. Confirmed by experiment (2026-11-14): the field is live, and the refresh interval is about 2 to 4 s. Ranges matched the connected reading on 2026-11-14. Unverified: equality at the same moment.
+. Optionally read state of charge (byte 8) and status (byte 9). Confirmed by code.
+
+=== (b) Connected, from live-data notifications
+
+The recommended minimal client is the one-command sequence: connect, enable notify on `0000fff4-...`, and send `D1 55 07`. Confirmed by experiment (2026-11-14). On one unit, nothing else was needed for live voltage. The numbered steps below are the vendor chain, annotated with what the experiment settled.
+
+. Connect (`autoConnect` false). Discover services. Confirmed by code.
+. Enable notifications on `0000fff4-...` by writing `0x01 0x00` to its CCCD. Wait for the descriptor write to complete before writing commands. The vendor app does not wait; the wait is a portability measure. Confirmed by code, apart from the wait.
+. Write each command zero-padded to 16 bytes, encrypted, to `0000fff3-...` with write-without-response. Wait for one notification after each write, as the vendor app does. Confirmed by code.
+. Send `D1 55 01` and wait for the `D1 55 01` response. Confirmed by code. Confirmed by experiment (2026-11-14): this step can be dropped.
+. Send `D1 55 02 00` and wait for `D1 55 02`. Proceed only if byte 3 is `0x00`. Confirmed by code. Confirmed by experiment (2026-11-14): this step can be dropped.
+. Send `D1 55 07`. Expect `D1 55 07 FF` (acknowledgement), then live-data frames. Confirmed by code as the vendor's final step. Confirmed by experiment (2026-11-14): sent alone, as the only command, it produces the acknowledgement and then live-data frames.
+. Voltage = unsigned big-endian bytes 7..8 of each `D1 55 07` frame whose byte 3 is not `0xFF`, divided by 100. Confirmed by code.
+. Confirmed by experiment (2026-11-14): steps 4 and 5 can be dropped, and `D1 55 03` was not needed before `D1 55 07`. The frame rate is one per second, and no re-request was needed over 30 s. Unverified: whether the stream stops after a longer period without a new request. The vendor app always sends `D1 55 03` immediately before `D1 55 07`; see the test order above.
+
+[[experiment]]
+=== Experimental confirmation
+
+Measured 2026-11-14 with a passive BLE scan from a Linux laptop (BlueZ). The scan ran 40 seconds, covered one device, and made no connection.
+
+* The device advertised with local name `BM6`.
+* The 16-byte block, rebuilt as the company identifier (little-endian) followed by the 14 payload bytes, decrypted correctly with the key in <<crypto>>.
+* Decrypted bytes 0..5 equaled the device's Bluetooth address in display order.
+* Bytes 6..7 gave a plausible, changing battery voltage: 13.63 V falling to 13.26 V over the scan, with the engine recently stopped. The meter comparison was done in the connected test below: the monitor read about 0.08 to 0.10 V low on this unit.
+* Byte 8 was constant `0x64` (100), consistent with state of charge in percent.
+* Byte 9 was `0x02` for readings of 13.31 V and above, and `0x00` for readings of 13.30 V and below. This is consistent with status 2 (charging) and 0 (OK). The exact threshold is the device's own and is only bracketed by these observations.
+* Byte 10 was constant `0x01`. Bytes 11..12 were `00 00`. Bytes 13..15 were `00 01 08`.
+* Advertisements arrived about every 0.8 s on average. The encrypted block's content changed about every 2 to 4 s.
+* The device also carried an Apple-company-ID (`0x004C`) iBeacon-format manufacturer entry alongside the encrypted block.
+* Example decrypted block, address sanitized: `A1 B2 C3 D4 E5 F6 05 2E 64 00 01 00 00 00 01 08`, which is 13.26 V, 100 %, status 0.
+
+Platform note (BlueZ): BlueZ caches manufacturer data per company identifier. Because the first two ciphertext bytes are reported as the company identifier, every new block appears under a new key, and stale blocks remain in the dictionary. A client must track which entries are new since the last callback, or pick the latest. It must not treat all entries as current.
+
+Connected test (2026-11-14, Linux laptop, BlueZ, bleak). The client connected with no bonding and no MTU request, subscribed to notifications on `0000fff4-...` only, and wrote one command.
+
+* The one command was the live-data request `D1 55 07`, zero-padded to 16 bytes and encrypted. Nothing else was sent: no version request, no authorize, no battery-type write, no history request, no crank-test request, and no subscription to the firmware-update service.
+* The device answered about 90 ms after the write with the acknowledgement `D1 55 07 FF`. The first data frame followed about 1 s later.
+* Data frames then arrived at one per second (mean interval 1.001 s, 30 frames in 30 s) with nothing further sent. No re-request or keep-alive was needed over 30 s.
+* Every notification was exactly 16 bytes and decrypted to a `D1 55 07` prefix. The codec spec layout held: temperature 13 to 15 °C (sign byte `0x00`), status 2, state of charge 100 %, voltage 14.85 to 14.89 V, both counters 0.
+* Byte 13 was a constant `0x02` in every data frame, and bytes 14 and 15 were `0x00`. Meaning unknown.
+* Example decrypted frame: `D1 55 07 00 0E 02 64 05 CD 00 00 00 00 02 00 00`, which is 14 °C, status 2, 100 %, 14.85 V.
+* GATT table observed: Generic Access (`0x1800`), Generic Attribute (`0x1801`), Device Information (`0x180A`, read-only characteristics), data service `0xFFF0` with FFF1 (read, write), FFF2 (read), FFF3 (write), FFF4 (notify), and FFF5 (read), and service `0000fee0-...` with FEE1 (read, write, write without response). The FEE0 service matches the newer-firmware update service in <<ota>>. It was left untouched.
+* FFF3 declares only the `write` property, not `write-without-response`. A write without response was still accepted and acted on.
+* Passive scan about 35 s after disconnecting: advertisement voltage 14.85 to 14.88 V, the same range as the connected stream. The two were not compared at the same instant.
+* Independent multimeter at the battery terminals in the same state: 14.95 to 14.96 V. The monitor read about 0.08 to 0.10 V low (under 1 percent) on this unit. This is a single-unit observation, not a calibration constant.
+* Not tested: whether the device keeps advertising while a client is connected; negative temperatures; status values other than 0 and 2; the behavior of any other command.
+
+== Open items
+
+* Settled on one unit (2026-11-14): the live-data request works without the preceding chain.
+* Unverified: that advertisement bytes 6..7 equal the connected live-data voltage at the same moment. (Which field is the present voltage is settled: bytes 6..7. The field is live and the refresh interval is confirmed by experiment, 2026-11-14. The ranges matched that day, and the monitor read about 0.08 to 0.10 V low against an independent multimeter on that unit.)
+* Unverified: whether the device keeps advertising while a central is connected.
+* Settled on one unit (2026-11-14): the live-data notification rate is one frame per second, and no re-request was needed over 30 s. Unverified: whether the stream stops after a longer period without a new request.
+* Unverified: when the device advertises an iBeacon frame instead of the encrypted manufacturer data. Both appeared in the same scan (2026-11-14).
+* Settled on one unit (2026-11-14): skipping the OTA notify enable had no effect on live data. Unverified: the effect, if any, of skipping the identify probes.
+
+== License
+
+This document is dedicated to the public domain under the CC0 1.0 Universal Public Domain Dedication. See the `LICENSE` file in this directory or https://creativecommons.org/publicdomain/zero/1.0/ for the full text.
