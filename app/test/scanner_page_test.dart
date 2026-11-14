@@ -158,5 +158,39 @@ void main() {
       expect(ble.scanListens, 1);
       expect(find.textContaining('Bluetooth is off'), findsOneWidget);
     });
+
+    testWidgets('a failing scan cancel does not block pulling down', (
+      tester,
+    ) async {
+      final ble = await openScanner(tester);
+      ble
+        ..readiness = BleReadiness.off
+        ..scanCancelError = UniversalBleException(
+          code: UniversalBleErrorCode.bluetoothNotEnabled,
+          message: 'off',
+        );
+
+      await pullDown(tester);
+      expect(find.textContaining('Bluetooth is off'), findsOneWidget);
+
+      ble.readiness = BleReadiness.ready;
+      await pullDown(tester);
+      expect(ble.scanListens, 2);
+      expect(find.textContaining('Looking for monitors'), findsOneWidget);
+    });
+
+    testWidgets('leaving ignores a failing scan cancel', (tester) async {
+      final ble = await openScanner(tester);
+      ble.scanCancelError = UniversalBleException(
+        code: UniversalBleErrorCode.bluetoothNotEnabled,
+        message: 'off',
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(ble.scanCancels, 1);
+      expect(find.text('Saved monitors'), findsOneWidget);
+    });
   });
 }

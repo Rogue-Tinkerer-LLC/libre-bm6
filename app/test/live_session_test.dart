@@ -22,6 +22,9 @@ class FakeLink {
   FakeLink({this.cancelDelay = Duration.zero});
 
   final Duration cancelDelay;
+
+  /// Thrown by every cancel once set.
+  Object? cancelError;
   final streams = <StreamController<LiveData>>[];
   int active = 0;
   int maxActive = 0;
@@ -39,6 +42,7 @@ class FakeLink {
           await Future<void>.delayed(cancelDelay);
         }
         active--;
+        if (cancelError case final error?) throw error;
       },
     );
     streams.add(controller);
@@ -248,6 +252,19 @@ void main() {
         expect(closed, isTrue);
         expect(link.active, 0);
         expect(link.streams, hasLength(1));
+      });
+    });
+
+    test('close completes when the cancel fails', () {
+      fakeAsync((async) {
+        startSession(async);
+        link.last.add(frame());
+        link.cancelError = StateError('Bluetooth is off');
+        var closed = false;
+        session.close().then((_) => closed = true);
+        async.flushMicrotasks();
+
+        expect(closed, isTrue);
       });
     });
 

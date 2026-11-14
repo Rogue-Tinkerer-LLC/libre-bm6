@@ -176,6 +176,6 @@ class LiveSession {
     final subscription = _subscription;
     _subscription = null;
     await _cancelling;
-    await subscription?.cancel();
+    await subscription?.cancel().catchError((Object _) {});
   }
 }

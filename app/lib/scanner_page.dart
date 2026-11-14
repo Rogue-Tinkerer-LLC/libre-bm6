@@ -50,13 +50,20 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    unawaited(_cancelScan());
     super.dispose();
   }
 
-  Future<void> _start() async {
-    await _subscription?.cancel();
+  /// Stops the current scan. Stopping throws while Bluetooth is off, and a
+  /// cancelled subscription repeats its result, so the error is dropped.
+  Future<void> _cancelScan() async {
+    final subscription = _subscription;
     _subscription = null;
+    await subscription?.cancel().catchError((Object _) {});
+  }
+
+  Future<void> _start() async {
+    await _cancelScan();
     if (!mounted) return;
     setState(() {
       _readiness = null;

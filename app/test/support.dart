@@ -45,6 +45,9 @@ class FakeBle {
   int scanListens = 0;
   int scanCancels = 0;
 
+  /// Thrown by a scan cancel, as stopping a scan does while Bluetooth is off.
+  Object? scanCancelError;
+
   /// The most recent scan.
   StreamController<ScanResult> get scanResults => scanStreams.last;
 
@@ -54,7 +57,10 @@ class FakeBle {
     scan: () {
       final controller = StreamController<ScanResult>(
         onListen: () => scanListens++,
-        onCancel: () async => scanCancels++,
+        onCancel: () async {
+          scanCancels++;
+          if (scanCancelError case final error?) throw error;
+        },
       );
       scanStreams.add(controller);
       return controller.stream;
