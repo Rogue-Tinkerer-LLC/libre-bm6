@@ -148,12 +148,12 @@ class _HomeDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.gavel),
             title: Text(l.termsTitle),
-            onTap: () => open(const TermsPage()),
+            onTap: () => open(TermsPage(env: env)),
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: Text(l.privacyTitle),
-            onTap: () => open(const PrivacyPage()),
+            onTap: () => open(PrivacyPage(env: env)),
           ),
         ],
       ),

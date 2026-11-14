@@ -50,12 +50,12 @@ class _AboutPageState extends State<AboutPage> {
               ListTile(
                 title: Text(l.termsTitle),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(const TermsPage()),
+                onTap: () => _push(TermsPage(env: widget.env)),
               ),
               ListTile(
                 title: Text(l.privacyTitle),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _push(const PrivacyPage()),
+                onTap: () => _push(PrivacyPage(env: widget.env)),
               ),
               ListTile(
                 title: Text(l.licensesTitle),

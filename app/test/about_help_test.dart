@@ -88,14 +88,19 @@ void main() {
       await tester.tap(find.text('Report a bug'));
       await tester.pumpAndSettle();
 
+      const url = 'https://github.com/Rogue-Tinkerer-LLC/libre-bm6/issues/new';
+      final message = find.text(
+        'Nothing could open the link. Please visit $url.',
+        findRichText: true,
+      );
+      expect(message, findsOneWidget);
       expect(
-        find.widgetWithText(
-          SelectableText,
-          'Nothing could open the link. Please visit '
-          'https://github.com/Rogue-Tinkerer-LLC/libre-bm6/issues/new.',
-        ),
+        find.ancestor(of: message, matching: find.byType(SelectionArea)),
         findsOneWidget,
       );
+
+      await tester.tapOnText(find.textRange.ofSubstring(url));
+      expect(env.opened.last, Uri.parse(url));
     });
   });
 }

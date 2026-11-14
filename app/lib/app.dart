@@ -55,7 +55,7 @@ class LibreBm6App extends StatelessWidget {
         listenable: store,
         builder: (context, _) => store.termsAccepted
             ? DevicesPage(store: store, ble: ble, env: env)
-            : TermsPage(onAccept: store.acceptTerms),
+            : TermsPage(env: env, onAccept: store.acceptTerms),
       ),
     );
   }

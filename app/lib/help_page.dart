@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_env.dart';
 import 'l10n/app_localizations.dart';
+import 'linked_text.dart';
 
 class HelpPage extends StatelessWidget {
   const HelpPage({super.key, required this.env});
@@ -25,7 +26,9 @@ class HelpPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        content: SelectableText(l.noBrowser('$issuesUrl/new')),
+        content: SelectionArea(
+          child: LinkedText(l.noBrowser('$issuesUrl/new'), onOpen: env.openUri),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

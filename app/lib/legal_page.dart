@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 
 import 'app_env.dart';
 import 'l10n/app_localizations.dart';
+import 'linked_text.dart';
 
 /// The Terms of Service. With [onAccept], it is the first-launch gate.
 class TermsPage extends StatelessWidget {
-  const TermsPage({super.key, this.onAccept});
+  const TermsPage({super.key, required this.env, this.onAccept});
 
+  final AppEnv env;
   final VoidCallback? onAccept;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return _LegalPage(
+      env: env,
       title: l.termsTitle,
       sections: [
         (l.termsSummaryHeading, l.termsSummary),
@@ -34,7 +37,7 @@ class TermsPage extends StatelessWidget {
                 TextButton(
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const PrivacyPage(),
+                      builder: (_) => PrivacyPage(env: env),
                     ),
                   ),
                   child: Text(l.privacyTitle),
@@ -47,12 +50,15 @@ class TermsPage extends StatelessWidget {
 }
 
 class PrivacyPage extends StatelessWidget {
-  const PrivacyPage({super.key});
+  const PrivacyPage({super.key, required this.env});
+
+  final AppEnv env;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return _LegalPage(
+      env: env,
       title: l.privacyTitle,
       sections: [
         (l.privacySummaryHeading, l.privacySummary),
@@ -69,8 +75,14 @@ class PrivacyPage extends StatelessWidget {
 }
 
 class _LegalPage extends StatelessWidget {
-  const _LegalPage({required this.title, required this.sections, this.bottom});
+  const _LegalPage({
+    required this.env,
+    required this.title,
+    required this.sections,
+    this.bottom,
+  });
 
+  final AppEnv env;
   final String title;
   final List<(String, String)> sections;
   final Widget? bottom;
@@ -80,19 +92,21 @@ class _LegalPage extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          for (final (heading, body) in sections) ...[
-            Semantics(
-              header: true,
-              child: Text(heading, style: text.titleMedium),
-            ),
-            const SizedBox(height: 4),
-            SelectableText(body, style: text.bodyMedium),
-            const SizedBox(height: 16),
+      body: SelectionArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            for (final (heading, body) in sections) ...[
+              Semantics(
+                header: true,
+                child: Text(heading, style: text.titleMedium),
+              ),
+              const SizedBox(height: 4),
+              LinkedText(body, onOpen: env.openUri, style: text.bodyMedium),
+              const SizedBox(height: 16),
+            ],
           ],
-        ],
+        ),
       ),
       bottomNavigationBar: bottom == null
           ? null
