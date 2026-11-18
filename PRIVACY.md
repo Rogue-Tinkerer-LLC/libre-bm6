@@ -8,19 +8,19 @@ We treat you and your data the way we want to be treated. There is no account, n
 
 ## What the App Stores
 
-The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone and is excluded from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.
+The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone. Where the system allows it, the app excludes this from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.
 
 ## What the App Does Not Do
 
-There is no account, sign-in, advertising, analytics, or crash reporting. The app does not request internet access, so it cannot send anything off your phone. It does not access your location.
+There is no account, sign-in, advertising, analytics, or crash reporting. The app makes no network connections, so it sends nothing off your phone. It does not access your location.
 
 ## Bluetooth Permissions
 
-The app asks for permission to find and connect to nearby Bluetooth devices. It uses that permission only to find your battery monitor and read it. It tells the system that Bluetooth scans are never used to work out your location.
+The app asks for permission to find and connect to nearby Bluetooth devices. It uses that permission only to find your battery monitor and read it. It never uses Bluetooth to work out your location.
 
 ## Bug Reports and Support
 
-If you tap Report a bug or Contact support, the app opens the project's GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and build number and the Android version and API level, and you can edit or remove them before you submit. GitHub's own terms and privacy policy apply there. The app itself still has no network access.
+If you tap Report a bug or Contact support, the app opens the project's GitHub page in your browser with a draft. This happens only when you tap one of them. The draft contains only the app version and build number and your phone's operating system version, and you can edit or remove them before you submit. GitHub's own terms and privacy policy apply there. The app itself still makes no network connections.
 
 ## Source Code
 
