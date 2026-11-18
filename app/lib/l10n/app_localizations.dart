@@ -517,7 +517,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsIndependent.
   ///
   /// In en, this message translates to:
-  /// **'Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor.'**
+  /// **'Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor. Libre BM6 is published by Rogue Tinkerer LLC. These terms are between you and the publisher, not the app store you got the app from. The app store is not responsible for the app, for supporting it, or for any claim about it.'**
   String get termsIndependent;
 
   /// No description provided for @termsAccuracyHeading.
@@ -529,7 +529,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsAccuracy.
   ///
   /// In en, this message translates to:
-  /// **'Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.'**
+  /// **'Readings are for information only and may be inaccurate or delayed. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.'**
   String get termsAccuracy;
 
   /// No description provided for @termsSafetyHeading.
@@ -541,7 +541,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsSafety.
   ///
   /// In en, this message translates to:
-  /// **'Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional.'**
+  /// **'Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional. Installing, connecting, or servicing a battery monitor involves electrical and chemical hazards. You do that at your own risk.'**
   String get termsSafety;
 
   /// No description provided for @termsFullLicenseHeading.
@@ -553,7 +553,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsFullLicense.
   ///
   /// In en, this message translates to:
-  /// **'The complete text of the MPL 2.0 is available at https://mozilla.org/MPL/2.0/. It governs the software itself.'**
+  /// **'The complete text of the MPL 2.0 is available at https://mozilla.org/MPL/2.0/. It governs the software itself. Nothing in these terms restricts any right the MPL 2.0 gives you. If these terms and the MPL 2.0 conflict about the software, the MPL 2.0 governs.'**
   String get termsFullLicense;
 
   /// No description provided for @termsChangesHeading.

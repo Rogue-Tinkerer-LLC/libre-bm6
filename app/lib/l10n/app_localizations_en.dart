@@ -274,28 +274,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termsIndependent =>
-      'Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor.';
+      'Libre BM6 is an independent project. It is not affiliated with, endorsed by, or supported by the manufacturer of any battery monitor. Libre BM6 is published by Rogue Tinkerer LLC. These terms are between you and the publisher, not the app store you got the app from. The app store is not responsible for the app, for supporting it, or for any claim about it.';
 
   @override
   String get termsAccuracyHeading => 'Readings May Be Wrong';
 
   @override
   String get termsAccuracy =>
-      'Readings are for information only and may be inaccurate. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.';
+      'Readings are for information only and may be inaccurate or delayed. On one tested battery monitor, the voltage read ~0.1 V lower than a multimeter.';
 
   @override
   String get termsSafetyHeading => 'Safety';
 
   @override
   String get termsSafety =>
-      'Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional.';
+      'Do not rely on this app for any safety decision. Do not use it while driving. Please check your battery and vehicle with proper tools or a qualified professional. Installing, connecting, or servicing a battery monitor involves electrical and chemical hazards. You do that at your own risk.';
 
   @override
   String get termsFullLicenseHeading => 'The Full License';
 
   @override
   String get termsFullLicense =>
-      'The complete text of the MPL 2.0 is available at https://mozilla.org/MPL/2.0/. It governs the software itself.';
+      'The complete text of the MPL 2.0 is available at https://mozilla.org/MPL/2.0/. It governs the software itself. Nothing in these terms restricts any right the MPL 2.0 gives you. If these terms and the MPL 2.0 conflict about the software, the MPL 2.0 governs.';
 
   @override
   String get termsChangesHeading => 'Changes';
