@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:libre_bm6_app/ble.dart';
+import 'package:libre_bm6_app/l10n/app_localizations.dart';
 import 'package:libre_bm6_app/live_session.dart';
 import 'package:libre_bm6_universal_ble/libre_bm6_universal_ble.dart';
 
@@ -187,7 +190,7 @@ void main() {
       });
     });
 
-    test('reconnects when no first frame arrives for 40 seconds', () {
+    test('reports not found when no first frame arrives for 40 seconds', () {
       fakeAsync((async) {
         startSession(async);
         async.elapse(const Duration(milliseconds: 39999));
@@ -196,7 +199,7 @@ void main() {
 
         async.elapse(const Duration(milliseconds: 1));
         expect(session.state, LinkState.reconnecting);
-        expect(session.lastError, LinkProblem.disconnected);
+        expect(session.lastError, LinkProblem.notFound);
         expect(link.cancels, 1);
         expectReconnectAfter(async, const Duration(seconds: 2));
 
@@ -204,6 +207,39 @@ void main() {
         async.elapse(const Duration(seconds: 40));
         expect(link.cancels, 2);
         expectReconnectAfter(async, const Duration(seconds: 4));
+      });
+    });
+
+    test('a session error before the first-frame timeout still wins', () {
+      fakeAsync((async) {
+        startSession(async);
+        final error = Exception('setup failed');
+        link.last.addError(error);
+        async.elapse(const Duration(seconds: 40));
+
+        expect(session.lastError, error);
+      });
+    });
+
+    test('reports a stall, not not found, when frames stopped after one', () {
+      fakeAsync((async) {
+        startSession(async);
+        link.last.add(frame());
+        async.elapse(const Duration(seconds: 10));
+
+        expect(session.lastError, LinkProblem.stalled);
+      });
+    });
+
+    test('reports a disconnect when the stream ends after a frame', () {
+      fakeAsync((async) {
+        startSession(async);
+        link.last.add(frame());
+        async.elapse(const Duration(seconds: 5));
+        link.last.close();
+        async.flushMicrotasks();
+
+        expect(session.lastError, LinkProblem.disconnected);
       });
     });
 
@@ -413,6 +449,22 @@ void main() {
         session.close();
         async.flushMicrotasks();
       });
+    });
+  });
+
+  group('describeError', () {
+    final l = lookupAppLocalizations(const Locale('en'));
+
+    test('describes not found as an out-of-range monitor', () {
+      expect(
+        describeError(l, LinkProblem.notFound),
+        'The battery monitor was not found. Is it in range?',
+      );
+    });
+
+    test('keeps the disconnected and stalled messages', () {
+      expect(describeError(l, LinkProblem.disconnected), l.errorDisconnected);
+      expect(describeError(l, LinkProblem.stalled), l.errorStalled);
     });
   });
 }

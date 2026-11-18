@@ -46,6 +46,7 @@ Future<BleReadiness> _platformReady() async {
 String describeError(AppLocalizations l, Object error) => switch (error) {
   LinkProblem.disconnected => l.errorDisconnected,
   LinkProblem.stalled => l.errorStalled,
+  LinkProblem.notFound => l.errorNotFound,
   UniversalBleException(:final code) => switch (code) {
     UniversalBleErrorCode.bluetoothNotEnabled ||
     UniversalBleErrorCode.bluetoothNotAvailable => l.bluetoothOff,

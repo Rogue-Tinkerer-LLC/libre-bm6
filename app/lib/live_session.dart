@@ -5,7 +5,7 @@ import 'package:libre_bm6_universal_ble/libre_bm6_universal_ble.dart';
 enum LinkState { connecting, live, reconnecting }
 
 /// Why a session was restarted when the stream itself reported no error.
-enum LinkProblem { disconnected, stalled }
+enum LinkProblem { disconnected, stalled, notFound }
 
 /// Keeps a live-data stream running: reconnects with a capped backoff when
 /// the stream ends, and restarts it when frames stop arriving or never start.
@@ -83,7 +83,8 @@ class LiveSession {
     _watchdog?.cancel();
     _watchdog = Timer(
       firstFrameTimeout,
-      () => _restart(_sessionError ?? LinkProblem.disconnected, ended: false),
+      // The first frame replaces this timer, so no frame has arrived.
+      () => _restart(_sessionError ?? LinkProblem.notFound, ended: false),
     );
   }
 
