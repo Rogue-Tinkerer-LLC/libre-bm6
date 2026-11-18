@@ -15,12 +15,7 @@ class HelpPage extends StatelessWidget {
   ) async {
     final l = AppLocalizations.of(context);
     final info = await env.info();
-    final details = l.bugDetails(
-      info.version,
-      info.build,
-      info.androidRelease,
-      info.sdkLevel,
-    );
+    final details = l.bugDetails(info.version, info.build, info.os);
     final opened = await env.openUri(newIssueUri(body(details)));
     if (opened || !context.mounted) return;
     await showDialog<void>(

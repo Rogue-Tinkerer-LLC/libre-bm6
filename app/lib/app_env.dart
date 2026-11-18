@@ -1,16 +1,12 @@
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const issuesUrl = 'https://github.com/Rogue-Tinkerer-LLC/libre-bm6/issues';
 
-typedef AppInfo = ({
-  String version,
-  String build,
-  String androidRelease,
-  int sdkLevel,
-});
+typedef AppInfo = ({String version, String build, String os});
 
 /// App and OS details plus URI launching, so tests can swap in fakes.
 class AppEnv {
@@ -26,14 +22,25 @@ class AppEnv {
 
 Future<AppInfo> _platformInfo() async {
   final package = await PackageInfo.fromPlatform();
-  final android = await DeviceInfoPlugin().androidInfo;
-  return (
-    version: package.version,
-    build: package.buildNumber,
-    androidRelease: android.version.release,
-    sdkLevel: android.version.sdkInt,
-  );
+  final device = DeviceInfoPlugin();
+  final String os;
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    final ios = await device.iosInfo;
+    os = iosDetails(ios.systemName, ios.systemVersion);
+  } else {
+    final android = await device.androidInfo;
+    os = androidDetails(android.version.release, android.version.sdkInt);
+  }
+  return (version: package.version, build: package.buildNumber, os: os);
 }
+
+/// The OS part of a bug report's details line on Android.
+String androidDetails(String release, int sdkLevel) =>
+    'Android $release (API $sdkLevel)';
+
+/// The OS part of a bug report's details line on iOS.
+String iosDetails(String systemName, String systemVersion) =>
+    '$systemName $systemVersion';
 
 Future<bool> _openUri(Uri uri) async {
   try {

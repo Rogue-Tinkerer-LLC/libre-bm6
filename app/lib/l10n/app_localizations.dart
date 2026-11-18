@@ -436,11 +436,11 @@ abstract class AppLocalizations {
   /// **'What happened:\n\nWhat you expected:\n\nSteps to reproduce:\n\n\n{details}'**
   String bugBody(String details);
 
-  /// Details line at the end of a bug report.
+  /// Details line at the end of a bug report. The OS part is not translated, for example Android 17 (API 37) or iOS 18.1.
   ///
   /// In en, this message translates to:
-  /// **'App {version} ({build}) / Android {release} (API {sdk})'**
-  String bugDetails(String version, String build, String release, int sdk);
+  /// **'App {version} ({build}) / {os}'**
+  String bugDetails(String version, String build, String os);
 
   /// No description provided for @noBrowser.
   ///

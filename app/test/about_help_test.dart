@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libre_bm6_app/about_page.dart';
+import 'package:libre_bm6_app/app_env.dart';
 import 'package:libre_bm6_app/help_page.dart';
 
 import 'support.dart';
 
 void main() {
+  group('OS details', () {
+    test('Android names the release and API level', () {
+      expect(androidDetails('17', 37), 'Android 17 (API 37)');
+    });
+
+    test('iOS names the system and its version', () {
+      expect(iosDetails('iOS', '18.1'), 'iOS 18.1');
+    });
+  });
+
   group('AboutPage', () {
     testWidgets('shows the version and build and no support buttons', (
       tester,
@@ -43,8 +54,12 @@ void main() {
   group('HelpPage', () {
     const details = 'App 1.2.3 (45) / Android 17 (API 37)';
 
-    Future<Uri> tapAndCapture(WidgetTester tester, String button) async {
-      final env = FakeEnv();
+    Future<Uri> tapAndCapture(
+      WidgetTester tester,
+      String button, {
+      FakeEnv? fake,
+    }) async {
+      final env = fake ?? FakeEnv();
       await tester.pumpWidget(localized(HelpPage(env: env.env)));
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
@@ -79,6 +94,16 @@ void main() {
         uri.queryParameters['body'],
         'What happened:\n\nWhat you expected:\n\nSteps to reproduce:'
         '\n\n\n$details',
+      );
+    });
+
+    testWidgets('reports the iOS version on iOS', (tester) async {
+      final env = FakeEnv()..os = iosDetails('iOS', '18.1');
+      final uri = await tapAndCapture(tester, 'Contact support', fake: env);
+
+      expect(
+        uri.queryParameters['body'],
+        'How can we help?\n\n\nApp 1.2.3 (45) / iOS 18.1',
       );
     });
 

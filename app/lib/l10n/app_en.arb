@@ -163,9 +163,9 @@
       }
     }
   },
-  "bugDetails": "App {version} ({build}) / Android {release} (API {sdk})",
+  "bugDetails": "App {version} ({build}) / {os}",
   "@bugDetails": {
-    "description": "Details line at the end of a bug report.",
+    "description": "Details line at the end of a bug report. The OS part is not translated, for example Android 17 (API 37) or iOS 18.1.",
     "placeholders": {
       "version": {
         "type": "String"
@@ -173,12 +173,9 @@
       "build": {
         "type": "String"
       },
-      "release": {
-        "type": "String"
-      },
-      "sdk": {
-        "type": "int",
-        "format": "decimalPattern"
+      "os": {
+        "type": "String",
+        "example": "Android 17 (API 37)"
       }
     }
   },

@@ -226,13 +226,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String bugDetails(String version, String build, String release, int sdk) {
-    final intl.NumberFormat sdkNumberFormat = intl.NumberFormat.decimalPattern(
-      localeName,
-    );
-    final String sdkString = sdkNumberFormat.format(sdk);
-
-    return 'App $version ($build) / Android $release (API $sdkString)';
+  String bugDetails(String version, String build, String os) {
+    return 'App $version ($build) / $os';
   }
 
   @override

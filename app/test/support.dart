@@ -79,11 +79,11 @@ class FakeBle {
 
 class FakeEnv {
   bool canOpenLinks = true;
+  String os = androidDetails('17', 37);
   final opened = <Uri>[];
 
   AppEnv get env => AppEnv(
-    info: () async =>
-        (version: '1.2.3', build: '45', androidRelease: '17', sdkLevel: 37),
+    info: () async => (version: '1.2.3', build: '45', os: os),
     openUri: (uri) async {
       opened.add(uri);
       return canOpenLinks;
