@@ -32,4 +32,4 @@ This policy may change in a future version of the app. The policy shown in the v
 
 ## Contact
 
-Please ask questions about this policy on the project's issues page at <https://github.com/Rogue-Tinkerer-LLC/libre-bm6/issues>.
+Libre BM6 is published by Rogue Tinkerer LLC. Please ask questions about this policy on the project's issues page at <https://github.com/Rogue-Tinkerer-LLC/libre-bm6/issues>.

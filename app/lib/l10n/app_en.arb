@@ -233,7 +233,7 @@
   "privacyChangesHeading": "Changes",
   "privacyChanges": "This policy may change in a future version of the app. The policy shown in the version you use is the one that applies.",
   "privacyContactHeading": "Contact",
-  "privacyContact": "Please ask questions about this policy on the project's issues page at {url}.",
+  "privacyContact": "Libre BM6 is published by Rogue Tinkerer LLC. Please ask questions about this policy on the project's issues page at {url}.",
   "@privacyContact": {
     "placeholders": {
       "url": {

@@ -673,7 +673,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyContact.
   ///
   /// In en, this message translates to:
-  /// **'Please ask questions about this policy on the project\'s issues page at {url}.'**
+  /// **'Libre BM6 is published by Rogue Tinkerer LLC. Please ask questions about this policy on the project\'s issues page at {url}.'**
   String privacyContact(String url);
 }
 

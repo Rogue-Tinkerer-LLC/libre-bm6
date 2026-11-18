@@ -366,6 +366,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String privacyContact(String url) {
-    return 'Please ask questions about this policy on the project\'s issues page at $url.';
+    return 'Libre BM6 is published by Rogue Tinkerer LLC. Please ask questions about this policy on the project\'s issues page at $url.';
   }
 }
