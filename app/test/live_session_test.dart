@@ -215,9 +215,29 @@ void main() {
         startSession(async);
         final error = Exception('setup failed');
         link.last.addError(error);
-        async.elapse(const Duration(seconds: 40));
+        async.elapse(const Duration(milliseconds: 39999));
+        expect(session.state, LinkState.connecting);
+        expect(link.cancels, 0);
 
+        async.elapse(const Duration(milliseconds: 1));
+        expect(session.state, LinkState.reconnecting);
+        expect(link.cancels, 1);
         expect(session.lastError, error);
+      });
+    });
+
+    test('a live link past 40 seconds is never restarted', () {
+      fakeAsync((async) {
+        startSession(async);
+        for (var i = 0; i < 60; i++) {
+          link.last.add(frame());
+          async.elapse(const Duration(seconds: 1));
+        }
+
+        expect(session.state, LinkState.live);
+        expect(session.lastError, isNull);
+        expect(link.cancels, 0);
+        expect(link.streams, hasLength(1));
       });
     });
 
