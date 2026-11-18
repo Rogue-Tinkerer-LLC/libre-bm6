@@ -221,7 +221,7 @@
   "privacySummaryHeading": "The Short Version",
   "privacySummary": "We treat you and your data the way we want to be treated. There is no account, no ads, and no tracking. Nothing leaves your phone unless you choose to report a bug or ask for support.",
   "privacyStoredHeading": "What the App Stores",
-  "privacyStored": "The app stores only the battery monitors you save: each one's Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone. Where the system allows it, the app excludes this from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.",
+  "privacyStored": "The app stores only the battery monitors you save: each one's Bluetooth identifier and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app's private storage on your phone. Where the system allows it, the app excludes this from backups. Otherwise, your phone's own backup may include it. Deleting a battery monitor removes it. Uninstalling the app removes everything from your phone.",
   "privacyNotDoneHeading": "What the App Does Not Do",
   "privacyNotDone": "There is no account, sign-in, advertising, analytics, or crash reporting. The app makes no network connections, so it sends nothing off your phone. It does not access your location.",
   "privacyBluetoothHeading": "Bluetooth Permissions",

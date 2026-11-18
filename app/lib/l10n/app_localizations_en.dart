@@ -324,7 +324,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyStored =>
-      'The app stores only the battery monitors you save: each one\'s Bluetooth address and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone. Where the system allows it, the app excludes this from backups. Deleting a battery monitor removes it. Uninstalling the app removes everything.';
+      'The app stores only the battery monitors you save: each one\'s Bluetooth identifier and the name you give it. It also remembers that you accepted the Terms of Service. This stays in the app\'s private storage on your phone. Where the system allows it, the app excludes this from backups. Otherwise, your phone\'s own backup may include it. Deleting a battery monitor removes it. Uninstalling the app removes everything from your phone.';
 
   @override
   String get privacyNotDoneHeading => 'What the App Does Not Do';
