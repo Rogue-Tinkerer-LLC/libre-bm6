@@ -9,7 +9,7 @@ voltage and temperature with no account, no location, and no internet.
 
 <p>
   <a href="https://apps.apple.com/us/app/libre-bm6-battery-monitor/id6836127551"><img alt="Download on the App Store" src="docs/badges/app-store.svg" height="54"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.roguetinkerer.libre_bm6_app"><img alt="Get it on Google Play" src="docs/badges/google-play.png" height="80"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.roguetinkerer.libre_bm6_app"><img alt="Get it on Google Play" src="docs/badges/google-play.png" height="54"></a>
 </p>
 
 ## Why this exists
