@@ -8,8 +8,8 @@ Libre app for Leagend BM6 Bluetooth battery monitors (sold as Ancel BM200, Quick
 voltage and temperature with no account, no location, and no internet.
 
 <p>
-  <a href="https://apps.apple.com/us/app/libre-bm6-battery-monitor/id6836127551"><img alt="Download on the App Store" src="https://tools.applemarketingtools.com/api/badge/download-on-the-app-store/black/en-us?size=250x83" height="54"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.roguetinkerer.libre_bm6_app"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"></a>
+  <a href="https://apps.apple.com/us/app/libre-bm6-battery-monitor/id6836127551"><img alt="Download on the App Store" src="docs/badges/app-store.svg" height="54"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.roguetinkerer.libre_bm6_app"><img alt="Get it on Google Play" src="docs/badges/google-play.png" height="80"></a>
 </p>
 
 ## Why this exists
